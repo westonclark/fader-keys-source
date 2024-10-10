@@ -1,20 +1,10 @@
 #include "MainComponent.h"
-#include <map>
 #include <cctype> // For std::tolower
 
 //==============================================================================
 MainComponent::MainComponent()
-    : keyboardComponent(keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
-    // Make sure you set the size of the component after
-    // you add any child components.
     setSize(800, 600);
-
-    // Prevent the keyboard component from stealing focus
-    keyboardComponent.setWantsKeyboardFocus(false);
-
-    // Add the keyboard component to the main component
-    addAndMakeVisible(keyboardComponent);
 
     // Add KeyListener to capture keystrokes
     setWantsKeyboardFocus(true);
@@ -56,25 +46,132 @@ MainComponent::MainComponent()
         midiInputSelector.addItem(input.name, input.identifier.hashCode());
     }
 
-    // Register keyboard state listener
-    keyboardState.addListener(this);
+    // Initialize faders
+    initializeFaders();
+}
 
-    // Some platforms require permissions to open input channels so request that here
-    if (juce::RuntimePermissions::isRequired(juce::RuntimePermissions::recordAudio) &&
-        !juce::RuntimePermissions::isGranted(juce::RuntimePermissions::recordAudio))
+MainComponent::~MainComponent()
+{
+    closeMidiDevices();
+    removeKeyListener(this);
+}
+
+//==============================================================================
+void MainComponent::paint(juce::Graphics &g)
+{
+    // Fill the background
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+}
+
+void MainComponent::resized()
+{
+    auto area = getLocalBounds();
+
+    // Position MIDI selectors
+    auto midiArea = area.removeFromTop(70); // Reserve 70 pixels at the top for MIDI selectors
+
+    // Divide midiArea into sections for each label and selector
+    auto midiOutputArea = midiArea.removeFromTop(24);
+    midiOutputLabel.setBounds(midiOutputArea.removeFromLeft(80));
+    midiOutputSelector.setBounds(midiOutputArea.reduced(5, 0));
+
+    auto midiInputArea = midiArea.removeFromTop(24);
+    midiInputLabel.setBounds(midiInputArea.removeFromLeft(80));
+    midiInputSelector.setBounds(midiInputArea.reduced(5, 0));
+
+    // Position faders in the remaining area
+    auto faderArea = area;
+    int faderWidth = faderArea.getWidth() / numFaders;
+    for (int i = 0; i < numFaders; ++i)
     {
-        juce::RuntimePermissions::request(
-            juce::RuntimePermissions::recordAudio,
-            [&](bool granted)
-            { setAudioChannels(granted ? 2 : 0, 2); });
+        auto singleFaderArea = faderArea.removeFromLeft(faderWidth);
+        faderLabels[i].setBounds(singleFaderArea.removeFromTop(24));
+        faders[i].setBounds(singleFaderArea.reduced(10, 10));
     }
-    else
+}
+
+// KeyListener callbacks
+bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent)
+{
+    int keyCode = key.getTextCharacter();
+    keyCode = std::tolower(keyCode);
+
+    // Check if key is mapped to nudge up
+    if (keyToFaderIndexUp.find(keyCode) != keyToFaderIndexUp.end())
     {
-        // Specify the number of input and output channels that we want to open
-        setAudioChannels(0, 2);
+        int faderIndex = keyToFaderIndexUp[keyCode];
+        nudgeFader(faderIndex, 128); // Nudge up by 128 (adjust as needed)
+        return true;
     }
 
-    // Remove grabKeyboardFocus() from constructor
+    // Check if key is mapped to nudge down
+    if (keyToFaderIndexDown.find(keyCode) != keyToFaderIndexDown.end())
+    {
+        int faderIndex = keyToFaderIndexDown[keyCode];
+        nudgeFader(faderIndex, -128); // Nudge down by 128 (adjust as needed)
+        return true;
+    }
+
+    return false;
+}
+
+// MidiInputCallback implementation
+void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message)
+{
+    // **Optional: Check if the message is on the expected MIDI channel**
+    int midiChannel = message.getChannel();
+    if (midiChannel != 1)
+        return; // Ignore messages not on channel 1
+
+    if (message.isController())
+    {
+        int controllerNumber = message.getControllerNumber();
+        int value = message.getControllerValue();
+
+        // Check if controller number corresponds to a fader
+        // HUI uses CC 0-7 for MSB and 32-39 for LSB
+        for (int i = 0; i < numFaders; ++i)
+        {
+            int msbCC = i;      // CC 0-7
+            int lsbCC = i + 32; // CC 32-39
+
+            if (controllerNumber == msbCC || controllerNumber == lsbCC)
+            {
+                // Update fader value
+                int msb = faderValues[i] >> 7;
+                int lsb = faderValues[i] & 0x7F;
+
+                if (controllerNumber == msbCC)
+                    msb = value & 0x7F;
+                else
+                    lsb = value & 0x7F;
+
+                int newValue = (msb << 7) | lsb;
+                faderValues[i] = newValue;
+
+                // Update GUI from the MIDI thread safely
+                juce::MessageManager::callAsync([this, i, newValue]()
+                                                { faders[i].setValue(newValue, juce::dontSendNotification); });
+
+                break;
+            }
+        }
+    }
+}
+
+// Slider Listener
+void MainComponent::sliderValueChanged(juce::Slider *slider)
+{
+    for (int i = 0; i < numFaders; ++i)
+    {
+        if (&faders[i] == slider)
+        {
+            int newValue = static_cast<int>(slider->getValue());
+            faderValues[i] = newValue;
+            sendFaderMove(i, newValue);
+            break;
+        }
+    }
 }
 
 // Overridden to handle visibility change
@@ -85,177 +182,6 @@ void MainComponent::visibilityChanged()
         grabKeyboardFocus();
         hasFocusBeenSet = true;
     }
-}
-
-MainComponent::~MainComponent()
-{
-    // This shuts down the audio device and clears the audio source.
-    shutdownAudio();
-
-    // Close MIDI devices and listeners
-    closeMidiDevices(); // Resets the unique_ptrs
-
-    keyboardState.removeListener(this);
-    removeKeyListener(this);
-}
-
-//==============================================================================
-void MainComponent::prepareToPlay(int samplesPerBlockExpected,
-                                  double sampleRate)
-{
-    // Not used since we're not processing audio
-}
-
-void MainComponent::getNextAudioBlock(
-    const juce::AudioSourceChannelInfo &bufferToFill)
-{
-    // Since we're not producing any audio, clear the buffer
-    bufferToFill.clearActiveBufferRegion();
-}
-
-void MainComponent::releaseResources()
-{
-    // Not used since we're not processing audio
-}
-
-//==============================================================================
-void MainComponent::paint(juce::Graphics &g)
-{
-    // Fill the background
-    g.fillAll(
-        getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-}
-
-void MainComponent::resized()
-{
-    // Position the keyboard component
-    keyboardComponent.setBounds(10, getHeight() - 110, getWidth() - 20, 100);
-
-    // Position the MIDI output selector
-    midiOutputLabel.setBounds(10, 10, 80, 24);
-    midiOutputSelector.setBounds(100, 10, getWidth() - 110, 24);
-
-    // Position the MIDI input selector
-    midiInputLabel.setBounds(10, 40, 80, 24);
-    midiInputSelector.setBounds(100, 40, getWidth() - 110, 24);
-}
-
-// KeyListener callbacks
-bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent)
-{
-    DBG("Key Pressed: " << key.getTextDescription());
-    // Map keys to MIDI notes starting from middle C
-    int baseMidiNote = 60; // Middle C
-
-    // Define a mapping from keys to MIDI note offsets
-    std::map<char, int> keyToNoteOffset = {
-        {'a', 0},  // C4
-        {'s', 2},  // D4
-        {'d', 4},  // E4
-        {'f', 5},  // F4
-        {'g', 7},  // G4
-        {'h', 9},  // A4
-        {'j', 11}, // B4
-        {'k', 12}, // C5
-        {'l', 14}, // D5
-        {';', 16}, // E5
-        {'\'', 17} // F5
-    };
-
-    char keyChar = key.getTextCharacter();
-    keyChar = std::tolower(keyChar);
-
-    if (keyToNoteOffset.find(keyChar) != keyToNoteOffset.end())
-    {
-        int midiNote = baseMidiNote + keyToNoteOffset[keyChar];
-        float velocity = 1.0f;
-
-        juce::MidiMessage noteOn = juce::MidiMessage::noteOn(1, midiNote, velocity);
-        noteOn.setTimeStamp(juce::Time::getMillisecondCounterHiRes() * 0.001);
-
-        // Send MIDI message
-        if (midiOutput != nullptr)
-            midiOutput->sendMessageNow(noteOn);
-
-        // Update keyboard state
-        keyboardState.noteOn(1, midiNote, velocity);
-
-        return true; // Key event was handled
-    }
-
-    return false; // Key event was not handled
-}
-
-bool MainComponent::keyStateChanged(bool isKeyDown, juce::Component *originatingComponent)
-{
-    DBG("Key State Changed");
-
-    // Handle key releases to send Note Off messages
-    // Since JUCE doesn't call keyPressed on key release, we need to handle key state changes
-
-    // Map keys to MIDI notes starting from middle C
-    int baseMidiNote = 60; // Middle C
-
-    // Define a mapping from keys to MIDI note offsets
-    std::map<char, int> keyToNoteOffset = {
-        {'a', 0},  // C4
-        {'s', 2},  // D4
-        {'d', 4},  // E4
-        {'f', 5},  // F4
-        {'g', 7},  // G4
-        {'h', 9},  // A4
-        {'j', 11}, // B4
-        {'k', 12}, // C5
-        {'l', 14}, // D5
-        {';', 16}, // E5
-        {'\'', 17} // F5
-    };
-
-    // Iterate over all mapped keys
-    for (auto &keyMapping : keyToNoteOffset)
-    {
-        char keyChar = keyMapping.first;
-        int midiNote = baseMidiNote + keyMapping.second;
-
-        if (!juce::KeyPress::isKeyCurrentlyDown(keyChar))
-        {
-            // Key is released
-            // Send Note Off message
-            float velocity = 0.0f; // Velocity for Note Off
-            juce::MidiMessage noteOff = juce::MidiMessage::noteOff(1, midiNote, velocity);
-            noteOff.setTimeStamp(juce::Time::getMillisecondCounterHiRes() * 0.001);
-
-            // Send MIDI message
-            if (midiOutput != nullptr)
-                midiOutput->sendMessageNow(noteOff);
-
-            // Update keyboard state
-            keyboardState.noteOff(1, midiNote, velocity);
-        }
-    }
-
-    return false;
-}
-
-// MidiInputCallback implementation
-void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message)
-{
-    // Handle incoming MIDI messages
-    // For example, update the keyboard state
-    keyboardState.processNextMidiEvent(message);
-}
-
-// MidiKeyboardStateListener implementation
-void MainComponent::handleNoteOn(juce::MidiKeyboardState *source, int midiChannel, int midiNoteNumber, float velocity)
-{
-    // This is called when a note is pressed on the virtual keyboard
-    // You can handle this event if needed
-}
-
-void MainComponent::handleNoteOff(juce::MidiKeyboardState *source, int midiChannel, int midiNoteNumber, float velocity)
-{
-    // This is called when a note is released on the virtual keyboard
-    // You can handle this event if needed
 }
 
 // Setup MIDI devices
@@ -308,5 +234,100 @@ void MainComponent::closeMidiDevices()
     {
         midiInput->stop();
         midiInput.reset(); // Resets the unique_ptr, closing the device
+    }
+}
+
+// Helper methods
+void MainComponent::initializeFaders()
+{
+    // Initialize fader values and components
+    for (int i = 0; i < numFaders; ++i)
+    {
+        // Initialize fader value to middle position (8192)
+        faderValues[i] = 8192;
+
+        // Setup fader slider
+        faders[i].setSliderStyle(juce::Slider::LinearVertical);
+        faders[i].setRange(0, 16383, 1);
+        faders[i].setValue(faderValues[i]);
+        faders[i].addListener(this);
+        addAndMakeVisible(faders[i]);
+
+        // Setup fader label
+        faderLabels[i].setText("Fader " + juce::String(i + 1), juce::dontSendNotification);
+        faderLabels[i].setJustificationType(juce::Justification::centred);
+        addAndMakeVisible(faderLabels[i]);
+
+        // Prevent faders from stealing focus
+        faders[i].setWantsKeyboardFocus(false);
+    }
+
+    // Define key mappings for nudging faders
+    // Up keys
+
+    keyToFaderIndexUp['q'] = 0;
+    keyToFaderIndexUp['w'] = 1;
+    keyToFaderIndexUp['e'] = 2;
+    keyToFaderIndexUp['r'] = 3;
+    keyToFaderIndexUp['t'] = 4;
+    keyToFaderIndexUp['y'] = 5;
+    keyToFaderIndexUp['u'] = 6;
+    keyToFaderIndexUp['i'] = 7;
+
+    // Down keys
+    keyToFaderIndexDown['a'] = 0;
+    keyToFaderIndexDown['s'] = 1;
+    keyToFaderIndexDown['d'] = 2;
+    keyToFaderIndexDown['f'] = 3;
+    keyToFaderIndexDown['g'] = 4;
+    keyToFaderIndexDown['h'] = 5;
+    keyToFaderIndexDown['j'] = 6;
+    keyToFaderIndexDown['k'] = 7;
+}
+
+void MainComponent::nudgeFader(int faderIndex, int delta)
+{
+    // Adjust fader value
+    int newValue = faderValues[faderIndex] + delta;
+
+    // Clamp value between 0 and 16383
+    newValue = juce::jlimit(0, 16383, newValue);
+
+    faderValues[faderIndex] = newValue;
+
+    // Update GUI safely
+    juce::MessageManager::callAsync([this, faderIndex, newValue]()
+                                    { faders[faderIndex].setValue(newValue, juce::dontSendNotification); });
+
+    // Send MIDI message
+    sendFaderMove(faderIndex, newValue);
+}
+
+void MainComponent::sendFaderMove(int faderIndex, int value)
+{
+    // Ensure fader index is valid
+    if (faderIndex < 0 || faderIndex >= numFaders)
+        return;
+
+    // Calculate MSB and LSB
+    int msb = (value >> 7) & 0x7F;
+    int lsb = value & 0x7F;
+
+    // Get the controller numbers for the fader
+    int msbCC = faderIndex;      // CC 0-7 for faders 1-8 MSB
+    int lsbCC = faderIndex + 32; // CC 32-39 for faders 1-8 LSB
+
+    // **Set the MIDI channel to 1 (valid range is 1-16)**
+    int midiChannel = 1;
+
+    // Create MIDI messages
+    juce::MidiMessage msbMessage = juce::MidiMessage::controllerEvent(midiChannel, msbCC, msb);
+    juce::MidiMessage lsbMessage = juce::MidiMessage::controllerEvent(midiChannel, lsbCC, lsb);
+
+    // Send messages via MIDI output
+    if (midiOutput != nullptr)
+    {
+        midiOutput->sendMessageNow(msbMessage);
+        midiOutput->sendMessageNow(lsbMessage);
     }
 }
