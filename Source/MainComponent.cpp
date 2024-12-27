@@ -198,6 +198,12 @@ void MainComponent::setupMidiDevices()
             if (output.identifier.hashCode() == selectedOutputId)
             {
                 midiOutput = juce::MidiOutput::openDevice(output.identifier);
+                if (midiOutput != nullptr)
+                {
+                    // Send HUI initialization message
+                    uint8_t sysexInit[] = {0xF0, 0x00, 0x00, 0x66, 0x0F, 0x01, 0xF7};
+                    midiOutput->sendMessageNow(juce::MidiMessage(sysexInit, sizeof(sysexInit)));
+                }
                 break;
             }
         }
@@ -305,29 +311,23 @@ void MainComponent::nudgeFader(int faderIndex, int delta)
 
 void MainComponent::sendFaderMove(int faderIndex, int value)
 {
-    // Ensure fader index is valid
-    if (faderIndex < 0 || faderIndex >= numFaders)
+    if (faderIndex < 0 || faderIndex >= numFaders || midiOutput == nullptr)
         return;
 
-    // Calculate MSB and LSB
-    int msb = (value >> 7) & 0x7F;
-    int lsb = value & 0x7F;
+    // HUI protocol uses 14-bit values but in a specific way
+    // Convert the 14-bit value (0-16383) to HUI format
+    int huiValue = (value * 16384) / 16383; // Scale to ensure full range
+    int msb = (huiValue >> 7) & 0x7F;
+    int lsb = huiValue & 0x7F;
 
-    // Get the controller numbers for the fader
-    int msbCC = faderIndex;      // CC 0-7 for faders 1-8 MSB
-    int lsbCC = faderIndex + 32; // CC 32-39 for faders 1-8 LSB
+    // HUI uses channel 1
+    const int midiChannel = 1;
 
-    // **Set the MIDI channel to 1 (valid range is 1-16)**
-    int midiChannel = 1;
+    // In HUI, faders use CC 0-7 for MSB and 32-39 for LSB
+    int msbCC = faderIndex;      // CC 0-7
+    int lsbCC = faderIndex + 32; // CC 32-39
 
-    // Create MIDI messages
-    juce::MidiMessage msbMessage = juce::MidiMessage::controllerEvent(midiChannel, msbCC, msb);
-    juce::MidiMessage lsbMessage = juce::MidiMessage::controllerEvent(midiChannel, lsbCC, lsb);
-
-    // Send messages via MIDI output
-    if (midiOutput != nullptr)
-    {
-        midiOutput->sendMessageNow(msbMessage);
-        midiOutput->sendMessageNow(lsbMessage);
-    }
+    // Send LSB first, then MSB (HUI protocol order)
+    midiOutput->sendMessageNow(juce::MidiMessage::controllerEvent(midiChannel, lsbCC, lsb));
+    midiOutput->sendMessageNow(juce::MidiMessage::controllerEvent(midiChannel, msbCC, msb));
 }
