@@ -73,6 +73,17 @@ bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *origi
 // MidiInputCallback implementation
 void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message)
 {
+    // Check for HUI ping (Note On, note 0, velocity 0)
+    if (message.isNoteOn() && message.getNoteNumber() == 0 && message.getVelocity() == 0)
+    {
+        // Respond with ping reply (Note On, note 0, velocity 127)
+        if (midiOutput != nullptr)
+        {
+            midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 0, (uint8_t)127));
+        }
+        return;
+    }
+
     // **Optional: Check if the message is on the expected MIDI channel**
     int midiChannel = message.getChannel();
     if (midiChannel != 1)
@@ -257,22 +268,34 @@ void MainComponent::nudgeFader(int faderIndex, int delta)
 void MainComponent::sendFaderMove(int faderIndex, int value)
 {
     if (faderIndex < 0 || faderIndex >= numFaders || midiOutput == nullptr)
+    {
+        DBG("Invalid fader move: index=" << faderIndex << " output=" << (midiOutput != nullptr ? "yes" : "no"));
         return;
+    }
 
-    // HUI protocol uses 14-bit values but in a specific way
-    // Convert the 14-bit value (0-16383) to HUI format
-    int huiValue = (value * 16384) / 16383; // Scale to ensure full range
-    int msb = (huiValue >> 7) & 0x7F;
-    int lsb = huiValue & 0x7F;
+    // Convert the 14-bit value (0-16383) to LSB and MSB
+    int lsb = value & 0x7F;        // Get lower 7 bits
+    int msb = (value >> 7) & 0x7F; // Get upper 7 bits
 
-    // HUI uses channel 1
-    const int midiChannel = 1;
+    // Send 'touch fader' message
+    uint8_t touchData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};
+    uint8_t touchData2[3] = {0xB0, 0x2F, 0x40};
 
-    // In HUI, faders use CC 0-7 for MSB and 32-39 for LSB
-    int msbCC = faderIndex;      // CC 0-7
-    int lsbCC = faderIndex + 32; // CC 32-39
+    // Send fader position
+    uint8_t msbData[3] = {0xB0, (uint8_t)faderIndex, (uint8_t)msb};
+    uint8_t lsbData[3] = {0xB0, (uint8_t)(0x20 | faderIndex), (uint8_t)lsb};
 
-    // Send LSB first, then MSB (HUI protocol order)
-    midiOutput->sendMessageNow(juce::MidiMessage::controllerEvent(midiChannel, lsbCC, lsb));
-    midiOutput->sendMessageNow(juce::MidiMessage::controllerEvent(midiChannel, msbCC, msb));
+    // Send 'release fader' message
+    uint8_t releaseData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};
+    uint8_t releaseData2[3] = {0xB0, 0x2F, 0x00};
+
+    // Send the complete sequence
+    midiOutput->sendMessageNow(juce::MidiMessage(touchData1, 3)); // Touch start 1
+    midiOutput->sendMessageNow(juce::MidiMessage(touchData2, 3)); // Touch start 2
+
+    midiOutput->sendMessageNow(juce::MidiMessage(msbData, 3)); // Position MSB
+    midiOutput->sendMessageNow(juce::MidiMessage(lsbData, 3)); // Position LSB
+
+    midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3)); // Touch end 1
+    midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3)); // Touch end 2
 }
