@@ -13,39 +13,6 @@ MainComponent::MainComponent()
     // Setup MIDI devices
     setupMidiDevices();
 
-    // Add MIDI output selector
-    addAndMakeVisible(midiOutputSelector);
-    midiOutputSelector.onChange = [this]
-    {
-        closeMidiDevices();
-        setupMidiDevices();
-    };
-    midiOutputLabel.setText("MIDI Output:", juce::dontSendNotification);
-    addAndMakeVisible(midiOutputLabel);
-
-    // Add MIDI input selector
-    addAndMakeVisible(midiInputSelector);
-    midiInputSelector.onChange = [this]
-    {
-        closeMidiDevices();
-        setupMidiDevices();
-    };
-    midiInputLabel.setText("MIDI Input:", juce::dontSendNotification);
-    addAndMakeVisible(midiInputLabel);
-
-    // Populate MIDI devices
-    auto midiOutputs = juce::MidiOutput::getAvailableDevices();
-    for (auto &output : midiOutputs)
-    {
-        midiOutputSelector.addItem(output.name, output.identifier.hashCode());
-    }
-
-    auto midiInputs = juce::MidiInput::getAvailableDevices();
-    for (auto &input : midiInputs)
-    {
-        midiInputSelector.addItem(input.name, input.identifier.hashCode());
-    }
-
     // Initialize faders
     initializeFaders();
 }
@@ -67,19 +34,7 @@ void MainComponent::resized()
 {
     auto area = getLocalBounds();
 
-    // Position MIDI selectors
-    auto midiArea = area.removeFromTop(70); // Reserve 70 pixels at the top for MIDI selectors
-
-    // Divide midiArea into sections for each label and selector
-    auto midiOutputArea = midiArea.removeFromTop(24);
-    midiOutputLabel.setBounds(midiOutputArea.removeFromLeft(80));
-    midiOutputSelector.setBounds(midiOutputArea.reduced(5, 0));
-
-    auto midiInputArea = midiArea.removeFromTop(24);
-    midiInputLabel.setBounds(midiInputArea.removeFromLeft(80));
-    midiInputSelector.setBounds(midiInputArea.reduced(5, 0));
-
-    // Position faders in the remaining area
+    // Position faders in the full area
     auto faderArea = area;
     int faderWidth = faderArea.getWidth() / numFaders;
     for (int i = 0; i < numFaders; ++i)
@@ -187,43 +142,33 @@ void MainComponent::visibilityChanged()
 // Setup MIDI devices
 void MainComponent::setupMidiDevices()
 {
-    // Open selected MIDI output device
-    if (midiOutput == nullptr)
+    // Open MIDI output device
+    auto midiOutputs = juce::MidiOutput::getAvailableDevices();
+    for (auto &output : midiOutputs)
     {
-        auto selectedOutputId = midiOutputSelector.getSelectedId();
-        auto midiOutputs = juce::MidiOutput::getAvailableDevices();
-
-        for (auto &output : midiOutputs)
+        if (output.name == "IAC Driver Bus 1")
         {
-            if (output.identifier.hashCode() == selectedOutputId)
+            midiOutput = juce::MidiOutput::openDevice(output.identifier);
+            if (midiOutput != nullptr)
             {
-                midiOutput = juce::MidiOutput::openDevice(output.identifier);
-                if (midiOutput != nullptr)
-                {
-                    // Send HUI initialization message
-                    uint8_t sysexInit[] = {0xF0, 0x00, 0x00, 0x66, 0x0F, 0x01, 0xF7};
-                    midiOutput->sendMessageNow(juce::MidiMessage(sysexInit, sizeof(sysexInit)));
-                }
-                break;
+                // Send HUI initialization message
+                uint8_t sysexInit[] = {0xF0, 0x00, 0x00, 0x66, 0x0F, 0x01, 0xF7};
+                midiOutput->sendMessageNow(juce::MidiMessage(sysexInit, sizeof(sysexInit)));
             }
+            break;
         }
     }
 
-    // Open selected MIDI input device
-    if (midiInput == nullptr)
+    // Open MIDI input device
+    auto midiInputs = juce::MidiInput::getAvailableDevices();
+    for (auto &input : midiInputs)
     {
-        auto selectedInputId = midiInputSelector.getSelectedId();
-        auto midiInputs = juce::MidiInput::getAvailableDevices();
-
-        for (auto &input : midiInputs)
+        if (input.name == "IAC Driver Bus 1")
         {
-            if (input.identifier.hashCode() == selectedInputId)
-            {
-                midiInput = juce::MidiInput::openDevice(input.identifier, this);
-                if (midiInput != nullptr)
-                    midiInput->start();
-                break;
-            }
+            midiInput = juce::MidiInput::openDevice(input.identifier, this);
+            if (midiInput != nullptr)
+                midiInput->start();
+            break;
         }
     }
 }

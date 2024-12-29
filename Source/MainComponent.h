@@ -39,13 +39,7 @@ private:
     //==============================================================================
     // MIDI devices
     std::unique_ptr<juce::MidiOutput> midiOutput;
-    juce::ComboBox midiOutputSelector;
-
     std::unique_ptr<juce::MidiInput> midiInput;
-    juce::ComboBox midiInputSelector;
-
-    juce::Label midiOutputLabel;
-    juce::Label midiInputLabel;
 
     void setupMidiDevices();
     void closeMidiDevices();
