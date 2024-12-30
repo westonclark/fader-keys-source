@@ -26,14 +26,12 @@ MainComponent::~MainComponent()
 //==============================================================================
 void MainComponent::paint(juce::Graphics &g)
 {
-    // Fill the background
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
 void MainComponent::resized()
 {
     auto area = getLocalBounds();
-
     auto faderArea = area;
     int faderWidth = faderArea.getWidth() / numFaders;
     for (int i = 0; i < numFaders; ++i)
@@ -52,47 +50,31 @@ bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *origi
     if (keyToFaderIndexUp.find(keyCode) != keyToFaderIndexUp.end())
     {
         int faderIndex = keyToFaderIndexUp[keyCode];
-        nudgeFader(faderIndex, 320);
+        nudgeFader(faderIndex, 160);
         return true;
     }
 
     if (keyToFaderIndexDown.find(keyCode) != keyToFaderIndexDown.end())
     {
         int faderIndex = keyToFaderIndexDown[keyCode];
-        nudgeFader(faderIndex, -320);
+        nudgeFader(faderIndex, -160);
         return true;
     }
 
     return false;
 }
 
-// MidiInputCallback implementation
 void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message)
 {
-
-    // Some versions of Pro Tools use Note Off #0 Vel 64 as a 'ping'
-    if (message.getRawDataSize() == 3)
+    // new version of Pro Tools use note off #0 Vel 64 as a 'ping'
+    if (message.isNoteOff() && message.getNoteNumber() == 0 && message.getVelocity() == 64)
     {
-        auto status = message.getRawData()[0];
-        auto data1 = message.getRawData()[1];
-        auto data2 = message.getRawData()[2];
-
-        // Check if it’s note-off on channel 1, note #0, velocity 64
-        // i.e. status = 0x80, data1 = 0, data2 = 64
-        if ((status == 0x80) && (data1 == 0x00) && (data2 == 0x40))
-        {
-            DBG("Got Pro Tools ping (Note Off #0, vel 64), replying with noteOn #0, vel 127");
-            if (midiOutput != nullptr)
-            {
-                // Typical HUI reply
-                // channel=1, note=0, velocity=127 => 0x90 0x00 0x7F
-                midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 0, (uint8_t)127));
-            }
-            return;
-        }
+        if (midiOutput != nullptr)
+            midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 0, (uint8_t)127));
+        return;
     }
 
-    // handle the “classic” ping version
+    // handle the "classic" ping version
     // if (message.isNoteOn() && message.getNoteNumber() == 0 && message.getVelocity() == 0)
     // {
     //     if (midiOutput != nullptr)
@@ -126,7 +108,7 @@ void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juc
                 int newValue = (msb << 7) | lsb;
                 faderValues[i] = newValue;
 
-                // Update GUI from the MIDI thread safely
+                // update GUI from the MIDI thread safely
                 juce::MessageManager::callAsync([this, i, newValue]()
                                                 { faders[i].setValue(newValue, juce::dontSendNotification); });
 
@@ -136,7 +118,6 @@ void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juc
     }
 }
 
-// Slider Listener
 void MainComponent::sliderValueChanged(juce::Slider *slider)
 {
     for (int i = 0; i < numFaders; ++i)
@@ -161,10 +142,8 @@ void MainComponent::visibilityChanged()
     }
 }
 
-// Setup MIDI devices
 void MainComponent::setupMidiDevices()
 {
-    // Open MIDI output device
     auto midiOutputs = juce::MidiOutput::getAvailableDevices();
     for (auto &output : midiOutputs)
     {
@@ -173,11 +152,11 @@ void MainComponent::setupMidiDevices()
             midiOutput = juce::MidiOutput::openDevice(output.identifier);
             if (midiOutput != nullptr)
             {
-                // Send HUI initialization message
-                uint8_t sysexInit[] = {0xF0, 0x00, 0x00, 0x66, 0x0F, 0x01, 0xF7};
-                midiOutput->sendMessageNow(juce::MidiMessage(sysexInit, sizeof(sysexInit)));
+                // HUI initialization message
+                // uint8_t sysexInit[] = {0xF0, 0x00, 0x00, 0x66, 0x0F, 0x01, 0xF7};
+                // midiOutput->sendMessageNow(juce::MidiMessage(sysexInit, sizeof(sysexInit)));
 
-                startTimer(1000); // ping once every 1000 ms
+                // startTimer(1000); // ping once every 1000 ms
 
                 // requestFaderPositions();
             }
@@ -185,7 +164,6 @@ void MainComponent::setupMidiDevices()
         }
     }
 
-    // Open MIDI input device
     auto midiInputs = juce::MidiInput::getAvailableDevices();
     for (auto &input : midiInputs)
     {
@@ -199,18 +177,17 @@ void MainComponent::setupMidiDevices()
     }
 }
 
-// Close MIDI devices
 void MainComponent::closeMidiDevices()
 {
     if (midiOutput != nullptr)
     {
-        midiOutput.reset(); // Resets the unique_ptr, closing the device
+        midiOutput.reset();
     }
 
     if (midiInput != nullptr)
     {
         midiInput->stop();
-        midiInput.reset(); // Resets the unique_ptr, closing the device
+        midiInput.reset();
     }
 }
 
@@ -219,26 +196,26 @@ void MainComponent::initializeFaders()
 {
     for (int i = 0; i < numFaders; ++i)
     {
-        // Initialize fader value in code only, but don't externally notify Pro Tools here
+        // initialize fader value in code only, but don't externally notify the daw
         faderValues[i] = 12256;
 
-        // Set up the slider. Use dontSendNotification to avoid triggering sliderValueChanged().
+        // use dontSendNotification to avoid triggering sliderValueChanged().
         faders[i].setSliderStyle(juce::Slider::LinearVertical);
         faders[i].setRange(0, 16383, 1);
         faders[i].setValue(faderValues[i], juce::dontSendNotification);
         faders[i].addListener(this);
         addAndMakeVisible(faders[i]);
 
-        // Setup fader label
+        // set fader label
         faderLabels[i].setText("Fader " + juce::String(i + 1), juce::dontSendNotification);
         faderLabels[i].setJustificationType(juce::Justification::centred);
         addAndMakeVisible(faderLabels[i]);
 
-        // Prevent faders from stealing keyboard focus
-        faders[i].setWantsKeyboardFocus(false);
+        // prevent faders from stealing keyboard focus
+        // faders[i].setWantsKeyboardFocus(false);
     }
 
-    // Define key mappings for nudging faders
+    // key mappings for nudging faders
     keyToFaderIndexUp['q'] = 0;
     keyToFaderIndexUp['w'] = 1;
     keyToFaderIndexUp['e'] = 2;
@@ -272,7 +249,6 @@ void MainComponent::nudgeFader(int faderIndex, int delta)
     juce::MessageManager::callAsync([this, faderIndex, newValue]()
                                     { faders[faderIndex].setValue(newValue, juce::dontSendNotification); });
 
-    // Send MIDI message
     sendFaderMove(faderIndex, newValue);
 }
 
@@ -284,7 +260,7 @@ void MainComponent::sendFaderMove(int faderIndex, int value)
         return;
     }
 
-    // Convert the 14-bit value (0-16383) to LSB and MSB
+    // Add debug output to see the actual MIDI values being sent
     int lsb = value & 0x7F;        // Get lower 7 bits
     int msb = (value >> 7) & 0x7F; // Get upper 7 bits
 
@@ -301,14 +277,12 @@ void MainComponent::sendFaderMove(int faderIndex, int value)
     uint8_t releaseData2[3] = {0xB0, 0x2F, 0x00};
 
     // Send the complete sequence
-    midiOutput->sendMessageNow(juce::MidiMessage(touchData1, 3)); // Touch start 1
-    midiOutput->sendMessageNow(juce::MidiMessage(touchData2, 3)); // Touch start 2
-
-    midiOutput->sendMessageNow(juce::MidiMessage(msbData, 3)); // Position MSB
-    midiOutput->sendMessageNow(juce::MidiMessage(lsbData, 3)); // Position LSB
-
-    midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3)); // Touch end 1
-    midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3)); // Touch end 2
+    midiOutput->sendMessageNow(juce::MidiMessage(touchData1, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(touchData2, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(msbData, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(lsbData, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3));
 }
 
 // void MainComponent::requestFaderPositions()
