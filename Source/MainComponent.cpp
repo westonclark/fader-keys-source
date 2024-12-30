@@ -1,5 +1,5 @@
 #include "MainComponent.h"
-#include <cctype> // For std::tolower
+#include <cctype>
 
 //==============================================================================
 MainComponent::MainComponent()
@@ -34,7 +34,6 @@ void MainComponent::resized()
 {
     auto area = getLocalBounds();
 
-    // Position faders in the full area
     auto faderArea = area;
     int faderWidth = faderArea.getWidth() / numFaders;
     for (int i = 0; i < numFaders; ++i)
@@ -45,25 +44,22 @@ void MainComponent::resized()
     }
 }
 
-// KeyListener callbacks
 bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent)
 {
     int keyCode = key.getTextCharacter();
     keyCode = std::tolower(keyCode);
 
-    // Check if key is mapped to nudge up
     if (keyToFaderIndexUp.find(keyCode) != keyToFaderIndexUp.end())
     {
         int faderIndex = keyToFaderIndexUp[keyCode];
-        nudgeFader(faderIndex, 128); // Nudge up by 128 (adjust as needed)
+        nudgeFader(faderIndex, 320);
         return true;
     }
 
-    // Check if key is mapped to nudge down
     if (keyToFaderIndexDown.find(keyCode) != keyToFaderIndexDown.end())
     {
         int faderIndex = keyToFaderIndexDown[keyCode];
-        nudgeFader(faderIndex, -128); // Nudge down by 128 (adjust as needed)
+        nudgeFader(faderIndex, -320);
         return true;
     }
 
@@ -73,21 +69,36 @@ bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *origi
 // MidiInputCallback implementation
 void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message)
 {
-    // Check for HUI ping (Note On, note 0, velocity 0)
-    if (message.isNoteOn() && message.getNoteNumber() == 0 && message.getVelocity() == 0)
+
+    // Some versions of Pro Tools use Note Off #0 Vel 64 as a 'ping'
+    if (message.getRawDataSize() == 3)
     {
-        // Respond with ping reply (Note On, note 0, velocity 127)
-        if (midiOutput != nullptr)
+        auto status = message.getRawData()[0];
+        auto data1 = message.getRawData()[1];
+        auto data2 = message.getRawData()[2];
+
+        // Check if it’s note-off on channel 1, note #0, velocity 64
+        // i.e. status = 0x80, data1 = 0, data2 = 64
+        if ((status == 0x80) && (data1 == 0x00) && (data2 == 0x40))
         {
-            midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 0, (uint8_t)127));
+            DBG("Got Pro Tools ping (Note Off #0, vel 64), replying with noteOn #0, vel 127");
+            if (midiOutput != nullptr)
+            {
+                // Typical HUI reply
+                // channel=1, note=0, velocity=127 => 0x90 0x00 0x7F
+                midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 0, (uint8_t)127));
+            }
+            return;
         }
-        return;
     }
 
-    // **Optional: Check if the message is on the expected MIDI channel**
-    int midiChannel = message.getChannel();
-    if (midiChannel != 1)
-        return; // Ignore messages not on channel 1
+    // handle the “classic” ping version
+    // if (message.isNoteOn() && message.getNoteNumber() == 0 && message.getVelocity() == 0)
+    // {
+    //     if (midiOutput != nullptr)
+    //         midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 0, (uint8_t)127));
+    //     return;
+    // }
 
     if (message.isController())
     {
@@ -103,7 +114,7 @@ void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juc
 
             if (controllerNumber == msbCC || controllerNumber == lsbCC)
             {
-                // Update fader value
+                // update fader value
                 int msb = faderValues[i] >> 7;
                 int lsb = faderValues[i] & 0x7F;
 
@@ -165,6 +176,10 @@ void MainComponent::setupMidiDevices()
                 // Send HUI initialization message
                 uint8_t sysexInit[] = {0xF0, 0x00, 0x00, 0x66, 0x0F, 0x01, 0xF7};
                 midiOutput->sendMessageNow(juce::MidiMessage(sysexInit, sizeof(sysexInit)));
+
+                startTimer(1000); // ping once every 1000 ms
+
+                // requestFaderPositions();
             }
             break;
         }
@@ -202,16 +217,15 @@ void MainComponent::closeMidiDevices()
 // Helper methods
 void MainComponent::initializeFaders()
 {
-    // Initialize fader values and components
     for (int i = 0; i < numFaders; ++i)
     {
-        // Initialize fader value to middle position (8192)
-        faderValues[i] = 8192;
+        // Initialize fader value in code only, but don't externally notify Pro Tools here
+        faderValues[i] = 12256;
 
-        // Setup fader slider
+        // Set up the slider. Use dontSendNotification to avoid triggering sliderValueChanged().
         faders[i].setSliderStyle(juce::Slider::LinearVertical);
         faders[i].setRange(0, 16383, 1);
-        faders[i].setValue(faderValues[i]);
+        faders[i].setValue(faderValues[i], juce::dontSendNotification);
         faders[i].addListener(this);
         addAndMakeVisible(faders[i]);
 
@@ -220,13 +234,11 @@ void MainComponent::initializeFaders()
         faderLabels[i].setJustificationType(juce::Justification::centred);
         addAndMakeVisible(faderLabels[i]);
 
-        // Prevent faders from stealing focus
+        // Prevent faders from stealing keyboard focus
         faders[i].setWantsKeyboardFocus(false);
     }
 
     // Define key mappings for nudging faders
-    // Up keys
-
     keyToFaderIndexUp['q'] = 0;
     keyToFaderIndexUp['w'] = 1;
     keyToFaderIndexUp['e'] = 2;
@@ -236,7 +248,6 @@ void MainComponent::initializeFaders()
     keyToFaderIndexUp['u'] = 6;
     keyToFaderIndexUp['i'] = 7;
 
-    // Down keys
     keyToFaderIndexDown['a'] = 0;
     keyToFaderIndexDown['s'] = 1;
     keyToFaderIndexDown['d'] = 2;
@@ -298,4 +309,37 @@ void MainComponent::sendFaderMove(int faderIndex, int value)
 
     midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3)); // Touch end 1
     midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3)); // Touch end 2
+}
+
+// void MainComponent::requestFaderPositions()
+// {
+//     if (midiOutput == nullptr)
+//         return;
+
+//     // In HUI protocol, we can request fader positions by sending a "touch" message
+//     // for each fader and then releasing it
+//     for (int i = 0; i < numFaders; ++i)
+//     {
+//         uint8_t touchData1[3] = {0xB0, 0x0F, (uint8_t)i};
+//         uint8_t touchData2[3] = {0xB0, 0x2F, 0x40};
+//         uint8_t releaseData1[3] = {0xB0, 0x0F, (uint8_t)i};
+//         uint8_t releaseData2[3] = {0xB0, 0x2F, 0x00};
+
+//         midiOutput->sendMessageNow(juce::MidiMessage(touchData1, 3));
+//         midiOutput->sendMessageNow(juce::MidiMessage(touchData2, 3));
+//         midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3));
+//         midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3));
+//     }
+// }
+
+void MainComponent::timerCallback()
+{
+    // Send a "ping" to Pro Tools about once a second (or half a second).
+    // For HUI, that is: Note On, channel 1, note #0, velocity 0
+    // i.e. 0x90 0x00 0x00 in raw MIDI.
+    if (midiOutput != nullptr)
+    {
+        // This is our outgoing ping
+        midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 0, (uint8_t)0));
+    }
 }
