@@ -66,7 +66,7 @@ bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *origi
 
 void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message)
 {
-    // new version of Pro Tools use note off #0 Vel 64 as a 'ping'
+    // check for ping of note off #0 Vel 64
     if (message.isNoteOff() && message.getNoteNumber() == 0 && message.getVelocity() == 64)
     {
         if (midiOutput != nullptr)
@@ -150,16 +150,16 @@ void MainComponent::setupMidiDevices()
         if (output.name == "IAC Driver Bus 1")
         {
             midiOutput = juce::MidiOutput::openDevice(output.identifier);
-            if (midiOutput != nullptr)
-            {
-                // HUI initialization message
-                // uint8_t sysexInit[] = {0xF0, 0x00, 0x00, 0x66, 0x0F, 0x01, 0xF7};
-                // midiOutput->sendMessageNow(juce::MidiMessage(sysexInit, sizeof(sysexInit)));
+            // if (midiOutput != nullptr)
+            // {
+            // HUI initialization message
+            // uint8_t sysexInit[] = {0xF0, 0x00, 0x00, 0x66, 0x0F, 0x01, 0xF7};
+            // midiOutput->sendMessageNow(juce::MidiMessage(sysexInit, sizeof(sysexInit)));
 
-                // startTimer(1000); // ping once every 1000 ms
+            // startTimer(1000); // ping once every 1000 ms
 
-                // requestFaderPositions();
-            }
+            // requestFaderPositions();
+            // }
             break;
         }
     }
@@ -197,9 +197,8 @@ void MainComponent::initializeFaders()
     for (int i = 0; i < numFaders; ++i)
     {
         // initialize fader value in code only, but don't externally notify the daw
-        faderValues[i] = 12256;
-
         // use dontSendNotification to avoid triggering sliderValueChanged().
+        faderValues[i] = 12256;
         faders[i].setSliderStyle(juce::Slider::LinearVertical);
         faders[i].setRange(0, 16383, 1);
         faders[i].setValue(faderValues[i], juce::dontSendNotification);
@@ -210,9 +209,6 @@ void MainComponent::initializeFaders()
         faderLabels[i].setText("Fader " + juce::String(i + 1), juce::dontSendNotification);
         faderLabels[i].setJustificationType(juce::Justification::centred);
         addAndMakeVisible(faderLabels[i]);
-
-        // prevent faders from stealing keyboard focus
-        // faders[i].setWantsKeyboardFocus(false);
     }
 
     // key mappings for nudging faders
@@ -239,10 +235,7 @@ void MainComponent::nudgeFader(int faderIndex, int delta)
 {
     // Adjust fader value
     int newValue = faderValues[faderIndex] + delta;
-
-    // Clamp value between 0 and 16383
     newValue = juce::jlimit(0, 16383, newValue);
-
     faderValues[faderIndex] = newValue;
 
     // Update GUI safely
@@ -260,23 +253,21 @@ void MainComponent::sendFaderMove(int faderIndex, int value)
         return;
     }
 
-    // Add debug output to see the actual MIDI values being sent
     int lsb = value & 0x7F;        // Get lower 7 bits
     int msb = (value >> 7) & 0x7F; // Get upper 7 bits
 
-    // Send 'touch fader' message
+    // touch message
     uint8_t touchData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};
     uint8_t touchData2[3] = {0xB0, 0x2F, 0x40};
 
-    // Send fader position
+    // fader position
     uint8_t msbData[3] = {0xB0, (uint8_t)faderIndex, (uint8_t)msb};
     uint8_t lsbData[3] = {0xB0, (uint8_t)(0x20 | faderIndex), (uint8_t)lsb};
 
-    // Send 'release fader' message
+    // release message
     uint8_t releaseData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};
     uint8_t releaseData2[3] = {0xB0, 0x2F, 0x00};
 
-    // Send the complete sequence
     midiOutput->sendMessageNow(juce::MidiMessage(touchData1, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(touchData2, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(msbData, 3));
