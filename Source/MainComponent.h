@@ -12,8 +12,7 @@
 class MainComponent : public juce::Component,
                       public juce::KeyListener,
                       public juce::MidiInputCallback,
-                      public juce::Slider::Listener,
-                      public juce::Timer
+                      public juce::Slider::Listener
 {
 public:
     //==============================================================================
@@ -35,9 +34,6 @@ public:
 
     // Overridden to handle visibility change
     void visibilityChanged() override;
-
-    // juce::Timer callback
-    void timerCallback() override;
 
 private:
     //==============================================================================
@@ -65,9 +61,6 @@ private:
     void initializeFaders();
     void sendFaderMove(int faderIndex, int value);
     void nudgeFader(int faderIndex, int delta);
-
-    // Add this new method
-    void requestFaderPositions();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
