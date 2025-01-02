@@ -32,10 +32,8 @@ void MainComponent::resized()
 {
     auto area = getLocalBounds();
 
-    // Add button at top
     fineTuneButton.setBounds(area.removeFromTop(30).reduced(10, 5));
 
-    // Existing fader layout
     auto faderArea = area;
     int faderWidth = faderArea.getWidth() / numFaders;
     for (int i = 0; i < numFaders; ++i)
@@ -51,7 +49,7 @@ bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *origi
     int keyCode = key.getTextCharacter();
     keyCode = std::tolower(keyCode);
 
-    int nudgeAmount = fineTuneButton.getToggleState() ? 160 : 320;
+    int nudgeAmount = fineTune ? 160 : 320;
 
     if (keyToFaderIndexUp.find(keyCode) != keyToFaderIndexUp.end())
     {
@@ -129,7 +127,6 @@ void MainComponent::sliderValueChanged(juce::Slider *slider)
     }
 }
 
-// Overridden to handle visibility change
 void MainComponent::visibilityChanged()
 {
     if (isShowing() && !hasFocusBeenSet)
