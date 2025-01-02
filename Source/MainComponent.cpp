@@ -10,6 +10,10 @@ MainComponent::MainComponent()
     addKeyListener(this);
     setupMidiDevices();
     initializeFaders();
+
+    fineTuneButton.setButtonText("Fine Tune");
+    fineTuneButton.setToggleState(false, juce::dontSendNotification);
+    addAndMakeVisible(fineTuneButton);
 }
 
 MainComponent::~MainComponent()
@@ -27,6 +31,11 @@ void MainComponent::paint(juce::Graphics &g)
 void MainComponent::resized()
 {
     auto area = getLocalBounds();
+
+    // Add button at top
+    fineTuneButton.setBounds(area.removeFromTop(30).reduced(10, 5));
+
+    // Existing fader layout
     auto faderArea = area;
     int faderWidth = faderArea.getWidth() / numFaders;
     for (int i = 0; i < numFaders; ++i)
@@ -42,17 +51,19 @@ bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *origi
     int keyCode = key.getTextCharacter();
     keyCode = std::tolower(keyCode);
 
+    int nudgeAmount = fineTuneButton.getToggleState() ? 160 : 320;
+
     if (keyToFaderIndexUp.find(keyCode) != keyToFaderIndexUp.end())
     {
         int faderIndex = keyToFaderIndexUp[keyCode];
-        nudgeFader(faderIndex, 160);
+        nudgeFader(faderIndex, nudgeAmount);
         return true;
     }
 
     if (keyToFaderIndexDown.find(keyCode) != keyToFaderIndexDown.end())
     {
         int faderIndex = keyToFaderIndexDown[keyCode];
-        nudgeFader(faderIndex, -160);
+        nudgeFader(faderIndex, -nudgeAmount);
         return true;
     }
 
@@ -130,24 +141,20 @@ void MainComponent::visibilityChanged()
 
 void MainComponent::setupMidiDevices()
 {
-    DBG("Setting up virtual MIDI devices...");
-
-    // Create the virtual MIDI output device
     midiOutput = juce::MidiOutput::createNewDevice("Fader Keys MIDI Output");
     if (midiOutput == nullptr)
     {
         DBG("Failed to create the virtual MIDI output device!");
     }
 
-    // Create the virtual MIDI input device
     midiInput = juce::MidiInput::createNewDevice("Fader Keys MIDI Input", this);
-    if (midiInput != nullptr)
+    if (midiInput == nullptr)
     {
-        midiInput->start();
+        DBG("Failed to create the virtual MIDI input device!");
     }
     else
     {
-        DBG("Failed to create the virtual MIDI input device!");
+        midiInput->start();
     }
 }
 
@@ -161,7 +168,6 @@ void MainComponent::closeMidiDevices()
     midiOutput.reset();
 }
 
-// Helper methods
 void MainComponent::initializeFaders()
 {
     for (int i = 0; i < numFaders; ++i)
@@ -199,6 +205,12 @@ void MainComponent::initializeFaders()
     keyToFaderIndexDown['h'] = 5;
     keyToFaderIndexDown['j'] = 6;
     keyToFaderIndexDown['k'] = 7;
+
+    // Add button listener
+    fineTuneButton.onClick = [this]()
+    {
+        fineTune = fineTuneButton.getToggleState();
+    };
 }
 
 void MainComponent::nudgeFader(int faderIndex, int delta)
@@ -207,7 +219,7 @@ void MainComponent::nudgeFader(int faderIndex, int delta)
     newValue = juce::jlimit(0, 16383, newValue);
     faderValues[faderIndex] = newValue;
 
-    // Update GUI safely
+    // update GUI safely
     juce::MessageManager::callAsync([this, faderIndex, newValue]()
                                     { faders[faderIndex].setValue(newValue, juce::dontSendNotification); });
 
@@ -222,8 +234,8 @@ void MainComponent::sendFaderMove(int faderIndex, int value)
         return;
     }
 
-    int lsb = value & 0x7F;        // Get lower 7 bits
-    int msb = (value >> 7) & 0x7F; // Get upper 7 bits
+    int lsb = value & 0x7F;
+    int msb = (value >> 7) & 0x7F;
 
     // touch message
     uint8_t touchData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};

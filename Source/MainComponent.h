@@ -62,5 +62,9 @@ private:
     void sendFaderMove(int faderIndex, int value);
     void nudgeFader(int faderIndex, int delta);
 
+    // Add these new members
+    bool fineTune = false;
+    juce::ToggleButton fineTuneButton;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
