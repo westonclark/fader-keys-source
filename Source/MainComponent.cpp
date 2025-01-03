@@ -51,17 +51,32 @@ bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *origi
 
     int nudgeAmount = fineTune ? 160 : 320;
 
+    // nudge fader up
     if (keyToFaderIndexUp.find(keyCode) != keyToFaderIndexUp.end())
     {
         int faderIndex = keyToFaderIndexUp[keyCode];
         nudgeFader(faderIndex, nudgeAmount);
         return true;
     }
-
+    // nudge faderdown
     if (keyToFaderIndexDown.find(keyCode) != keyToFaderIndexDown.end())
     {
         int faderIndex = keyToFaderIndexDown[keyCode];
         nudgeFader(faderIndex, -nudgeAmount);
+        return true;
+    }
+
+    // nudge bank left
+    if (key == juce::KeyPress('1'))
+    {
+
+        nudgeBankLeft();
+        return true;
+    }
+    // nudge bank right
+    if (key == juce::KeyPress('2'))
+    {
+        nudgeBankRight();
         return true;
     }
 
@@ -127,15 +142,6 @@ void MainComponent::sliderValueChanged(juce::Slider *slider)
     }
 }
 
-void MainComponent::visibilityChanged()
-{
-    if (isShowing() && !hasFocusBeenSet)
-    {
-        grabKeyboardFocus();
-        hasFocusBeenSet = true;
-    }
-}
-
 void MainComponent::setupMidiDevices()
 {
     midiOutput = juce::MidiOutput::createNewDevice("Fader Keys MIDI Output");
@@ -184,6 +190,11 @@ void MainComponent::initializeFaders()
         addAndMakeVisible(faderLabels[i]);
     }
 
+    fineTuneButton.onClick = [this]()
+    {
+        fineTune = fineTuneButton.getToggleState();
+    };
+
     // key mappings for nudging faders
     keyToFaderIndexUp['q'] = 0;
     keyToFaderIndexUp['w'] = 1;
@@ -202,12 +213,6 @@ void MainComponent::initializeFaders()
     keyToFaderIndexDown['h'] = 5;
     keyToFaderIndexDown['j'] = 6;
     keyToFaderIndexDown['k'] = 7;
-
-    // Add button listener
-    fineTuneButton.onClick = [this]()
-    {
-        fineTune = fineTuneButton.getToggleState();
-    };
 }
 
 void MainComponent::nudgeFader(int faderIndex, int delta)
@@ -252,4 +257,32 @@ void MainComponent::sendFaderMove(int faderIndex, int value)
     midiOutput->sendMessageNow(juce::MidiMessage(lsbData, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3));
+}
+
+void MainComponent::nudgeBankLeft()
+{
+    if (midiOutput != nullptr)
+    {
+        uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};    // Select zone 0x0A
+        uint8_t buttonPress[3] = {0xB0, 0x2F, 0x40};   // Port 0 on
+        uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x00}; // Port 0 off
+
+        midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
+        midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
+        midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
+    }
+}
+
+void MainComponent::nudgeBankRight()
+{
+    if (midiOutput != nullptr)
+    {
+        uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};    // Select zone 0x0A
+        uint8_t buttonPress[3] = {0xB0, 0x2F, 0x42};   // Port 2 on
+        uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x02}; // Port 2 off
+
+        midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
+        midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
+        midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
+    }
 }

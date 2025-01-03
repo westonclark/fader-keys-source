@@ -32,9 +32,6 @@ public:
     // Slider Listener
     void sliderValueChanged(juce::Slider *slider) override;
 
-    // Overridden to handle visibility change
-    void visibilityChanged() override;
-
 private:
     //==============================================================================
     // MIDI devices
@@ -54,17 +51,18 @@ private:
     std::map<int, int> keyToFaderIndexUp;   // Key code to fader index for nudging up
     std::map<int, int> keyToFaderIndexDown; // Key code to fader index for nudging down
 
-    // Focus management
-    bool hasFocusBeenSet = false;
-
-    // Helper methods
+    // Fader methods
     void initializeFaders();
     void sendFaderMove(int faderIndex, int value);
     void nudgeFader(int faderIndex, int delta);
 
-    // Add these new members
+    // Fine tune methods
     bool fineTune = false;
     juce::ToggleButton fineTuneButton;
+
+    // Bank methods
+    void nudgeBankLeft();
+    void nudgeBankRight();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
