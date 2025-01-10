@@ -32,6 +32,9 @@ public:
     // Slider Listener
     void sliderValueChanged(juce::Slider *slider) override;
 
+    // Global key listener
+    void handleGlobalKeycode(int keyCode, bool isKeyDown);
+
 private:
     //==============================================================================
     // MIDI devices

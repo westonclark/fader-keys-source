@@ -9,6 +9,10 @@
       <FILE id="Wqywn4" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
     </GROUP>
+    <FILE id="ufVjuv" name="GlobalKeyListener.h" compile="0" resource="0"
+          file="Source/GlobalKeyListener.h"/>
+    <FILE id="OugtfE" name="GlobalKeyListener.mm" compile="1" resource="0"
+          file="Source/GlobalKeyListener.mm"/>
   </MAINGROUP>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

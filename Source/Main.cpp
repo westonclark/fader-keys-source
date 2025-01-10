@@ -8,6 +8,7 @@
 
 #include <JuceHeader.h>
 #include "MainComponent.h"
+#include "GlobalKeyListener.h"
 
 //==============================================================================
 class faderkeysApplication : public juce::JUCEApplication
@@ -26,13 +27,17 @@ public:
         // This method is where you should put your application's initialisation code..
 
         mainWindow.reset(new MainWindow(getApplicationName()));
+
+        // Start the global key listener, pointing to our MainComponent
+        if (auto *mc = dynamic_cast<MainComponent *>(mainWindow->getContentComponent()))
+            startGlobalKeyListener(mc);
     }
 
     void shutdown() override
     {
-        // Add your application's shutdown code here..
+        stopGlobalKeyListener();
 
-        mainWindow = nullptr; // (deletes our window)
+        mainWindow = nullptr;
     }
 
     //==============================================================================

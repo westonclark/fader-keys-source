@@ -254,6 +254,7 @@ void MainComponent::sendFaderMove(int faderIndex, int value)
     midiOutput->sendMessageNow(juce::MidiMessage(touchData1, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(touchData2, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(msbData, 3));
+
     midiOutput->sendMessageNow(juce::MidiMessage(lsbData, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3));
@@ -284,5 +285,55 @@ void MainComponent::nudgeBankRight()
         midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
         midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
         midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
+    }
+}
+
+void MainComponent::handleGlobalKeycode(int keyCode, bool isKeyDown)
+{
+    // We only want to act on key down:
+    if (!isKeyDown)
+        return;
+
+    // If fineTune is true, use smaller increments
+    int nudgeAmount = fineTune ? 160 : 320;
+
+    // DBG("Global key pressed, mac keyCode=" << keyCode);
+
+    switch (keyCode)
+    {
+    // For standard QWERTY scancodes on macOS:
+    case 0: // 'a'
+        nudgeFader(0, -nudgeAmount);
+        break;
+    case 1: // 's'
+        nudgeFader(1, -nudgeAmount);
+        break;
+    case 2: // 'd'
+        nudgeFader(2, -nudgeAmount);
+        break;
+    case 3: // 'f'
+        nudgeFader(3, -nudgeAmount);
+        break;
+
+    case 12: // 'q'
+        nudgeFader(0, nudgeAmount);
+        break;
+    case 13: // 'w'
+        nudgeFader(1, nudgeAmount);
+        break;
+    case 14: // 'e'
+        nudgeFader(2, nudgeAmount);
+        break;
+    case 15: // 'r'
+        nudgeFader(3, nudgeAmount);
+        break;
+    case 18: // '1'
+        nudgeBankLeft();
+        break;
+    case 19: // '2'
+        nudgeBankRight();
+        break;
+    default:
+        break;
     }
 }
