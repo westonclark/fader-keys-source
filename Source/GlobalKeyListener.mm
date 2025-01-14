@@ -19,6 +19,7 @@ namespace
     CFMachPortRef eventTap = nullptr;
     CFRunLoopSourceRef runLoopSource = nullptr;
     juce::WeakReference<juce::Component> globalKeyTarget;
+    std::unique_ptr<juce::Timer> retryTimer;
 
     CGEventRef eventTapCallback(CGEventTapProxy proxy,
                                 CGEventType type,
@@ -80,11 +81,47 @@ namespace
         // Returning 'event' lets the OS proceed normally:
         return event;
     }
+
+    class EventTapRetryTimer : public juce::Timer
+    {
+    public:
+        EventTapRetryTimer(juce::Component* target) : targetComponent(target)
+        {
+            startTimer(1000); // Check every second
+        }
+
+        void timerCallback() override
+        {
+            // Try to create event tap
+            CGEventMask eventMask = (1 << kCGEventKeyDown) | (1 << kCGEventKeyUp);
+            auto newEventTap = CGEventTapCreate(kCGSessionEventTap,
+                                              kCGHeadInsertEventTap,
+                                              kCGEventTapOptionDefault,
+                                              eventMask,
+                                              eventTapCallback,
+                                              nullptr);
+
+            if (newEventTap)
+            {
+                // Success! Set up the event tap
+                eventTap = newEventTap;
+                runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
+                CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
+                CGEventTapEnable(eventTap, true);
+
+                DBG("GlobalKeyListener successfully started after permission grant.");
+                retryTimer.reset(); // Stop and delete timer
+            }
+        }
+
+    private:
+        juce::Component* targetComponent;
+    };
 }
 
 void startGlobalKeyListener(juce::Component* target)
 {
-    // Don’t start if we already have a tap
+    // Don't start if we already have a tap
     if (eventTap != nullptr)
         return;
 
@@ -101,6 +138,8 @@ void startGlobalKeyListener(juce::Component* target)
     if (!eventTap)
     {
         DBG("Failed to create event tap! Check Accessibility Permissions.");
+        // Start retry timer when initial attempt fails
+        retryTimer = std::make_unique<EventTapRetryTimer>(target);
         return;
     }
 
