@@ -301,7 +301,6 @@ void MainComponent::handleGlobalKeycode(int keyCode, bool isKeyDown)
 
     switch (keyCode)
     {
-    // For standard QWERTY scancodes on macOS:
     case 0: // 'a'
         nudgeFader(0, -nudgeAmount);
         break;
@@ -313,6 +312,18 @@ void MainComponent::handleGlobalKeycode(int keyCode, bool isKeyDown)
         break;
     case 3: // 'f'
         nudgeFader(3, -nudgeAmount);
+        break;
+    case 5: // 'g'
+        nudgeFader(4, -nudgeAmount);
+        break;
+    case 4: // 'h'
+        nudgeFader(5, -nudgeAmount);
+        break;
+    case 38: // 'j'
+        nudgeFader(6, -nudgeAmount);
+        break;
+    case 40: // 'k'
+        nudgeFader(7, -nudgeAmount);
         break;
 
     case 12: // 'q'
@@ -327,6 +338,19 @@ void MainComponent::handleGlobalKeycode(int keyCode, bool isKeyDown)
     case 15: // 'r'
         nudgeFader(3, nudgeAmount);
         break;
+    case 17: // 't'
+        nudgeFader(4, nudgeAmount);
+        break;
+    case 16: // 'y'
+        nudgeFader(5, nudgeAmount);
+        break;
+    case 32: // 'u'
+        nudgeFader(6, nudgeAmount);
+        break;
+    case 34: // 'i'
+        nudgeFader(7, nudgeAmount);
+        break;
+
     case 18: // '1'
         nudgeBankLeft();
         break;

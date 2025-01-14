@@ -33,28 +33,46 @@ namespace
                 unsigned short keyCode = [nsEvent keyCode];
                 bool isKeyDown = (type == kCGEventKeyDown);
 
-                if (auto* targetComp = globalKeyTarget.get())
+                // Get caps lock state
+                NSUInteger flags = [NSEvent modifierFlags];
+                bool isCapsLockOn = (flags & NSEventModifierFlagCapsLock) != 0;
+
+                if (isCapsLockOn)
                 {
-                    // Post to the JUCE message thread
-                    juce::MessageManager::callAsync([=]()
+                    if (auto* targetComp = globalKeyTarget.get())
                     {
-                        if (auto mc = dynamic_cast<MainComponent*>(targetComp))
-                            mc->handleGlobalKeycode((int)keyCode, isKeyDown);
-                    });
-                }
-                if (keyCode == 0  || // 'a'
-                    keyCode == 1  || // 's'
-                    keyCode == 2  || // 'd'
-                    keyCode == 3  || // 'f'
-                    keyCode == 12 || // 'q'
-                    keyCode == 13 || // 'w'
-                    keyCode == 14 || // 'e'
-                    keyCode == 15 || // 'r'
-                    keyCode == 18 || // '1'
-                    keyCode == 19)   // '2'
-                {
-                    // Return nullptr to swallow the event
-                    return nullptr;
+                        // Post to the JUCE message thread only when caps lock is on
+                        juce::MessageManager::callAsync([=]()
+                        {
+                            if (auto mc = dynamic_cast<MainComponent*>(targetComp))
+                                mc->handleGlobalKeycode((int)keyCode, isKeyDown);
+                        });
+                    }
+
+                    if (keyCode == 0  || // 'a'
+                        keyCode == 1  || // 's'
+                        keyCode == 2  || // 'd'
+                        keyCode == 3  || // 'f'
+                        keyCode == 5  || // 'g'
+                        keyCode == 4  || // 'h'
+                        keyCode == 38  || // 'j'
+                        keyCode == 40  || // 'k'
+
+                        keyCode == 12 || // 'q'
+                        keyCode == 13 || // 'w'
+                        keyCode == 14 || // 'e'
+                        keyCode == 15 || // 'r'
+                        keyCode == 17 || // 't'
+                        keyCode == 16 || // 'y'
+                        keyCode == 32 || // 'u'
+                        keyCode == 34 || // 'i'
+
+                        keyCode == 18 || // '1'
+                        keyCode == 19)   // '2'
+                    {
+                        // Return nullptr to swallow the event only when caps lock is on
+                        return nullptr;
+                    }
                 }
             }
         }
