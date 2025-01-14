@@ -10,7 +10,6 @@
     your controls and content.
 */
 class MainComponent : public juce::Component,
-                      public juce::KeyListener,
                       public juce::MidiInputCallback,
                       public juce::Slider::Listener
 {
@@ -22,9 +21,6 @@ public:
     //==============================================================================
     void paint(juce::Graphics &g) override;
     void resized() override;
-
-    // KeyListener callbacks
-    bool keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent) override;
 
     // MidiInputCallback
     void handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message) override;

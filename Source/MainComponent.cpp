@@ -6,8 +6,6 @@ MainComponent::MainComponent()
 {
     setSize(800, 600);
 
-    setWantsKeyboardFocus(true);
-    addKeyListener(this);
     setupMidiDevices();
     initializeFaders();
 
@@ -19,7 +17,6 @@ MainComponent::MainComponent()
 MainComponent::~MainComponent()
 {
     closeMidiDevices();
-    removeKeyListener(this);
 }
 
 //==============================================================================
@@ -42,45 +39,6 @@ void MainComponent::resized()
         faderLabels[i].setBounds(singleFaderArea.removeFromTop(24));
         faders[i].setBounds(singleFaderArea.reduced(10, 10));
     }
-}
-
-bool MainComponent::keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent)
-{
-    int keyCode = key.getTextCharacter();
-    keyCode = std::tolower(keyCode);
-
-    int nudgeAmount = fineTune ? 160 : 320;
-
-    // nudge fader up
-    if (keyToFaderIndexUp.find(keyCode) != keyToFaderIndexUp.end())
-    {
-        int faderIndex = keyToFaderIndexUp[keyCode];
-        nudgeFader(faderIndex, nudgeAmount);
-        return true;
-    }
-    // nudge faderdown
-    if (keyToFaderIndexDown.find(keyCode) != keyToFaderIndexDown.end())
-    {
-        int faderIndex = keyToFaderIndexDown[keyCode];
-        nudgeFader(faderIndex, -nudgeAmount);
-        return true;
-    }
-
-    // nudge bank left
-    if (key == juce::KeyPress('1'))
-    {
-
-        nudgeBankLeft();
-        return true;
-    }
-    // nudge bank right
-    if (key == juce::KeyPress('2'))
-    {
-        nudgeBankRight();
-        return true;
-    }
-
-    return false;
 }
 
 void MainComponent::handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message)
