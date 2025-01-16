@@ -4,15 +4,19 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="fJv4GV" name="fader-keys">
     <GROUP id="{A8175E5F-EC5F-17EA-514C-E4F0319AFBC8}" name="Source">
+      <FILE id="Mampzy" name="FaderEngine.cpp" compile="1" resource="0" file="Source/FaderEngine.cpp"/>
+      <FILE id="OaaapT" name="FaderEngine.h" compile="0" resource="0" file="Source/FaderEngine.h"/>
+      <FILE id="ufVjuv" name="GlobalKeyListener.h" compile="0" resource="0"
+            file="Source/GlobalKeyListener.h"/>
+      <FILE id="OugtfE" name="GlobalKeyListener.mm" compile="1" resource="0"
+            file="Source/GlobalKeyListener.mm"/>
+      <FILE id="QMCAGK" name="TrayIconComponent.cpp" compile="1" resource="0"
+            file="Source/TrayIconComponent.cpp"/>
+      <FILE id="Df7mWH" name="TrayIconComponent.h" compile="0" resource="0"
+            file="Source/TrayIconComponent.h"/>
       <FILE id="HA35lF" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
-      <FILE id="AMtARV" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="Wqywn4" name="MainComponent.cpp" compile="1" resource="0"
-            file="Source/MainComponent.cpp"/>
     </GROUP>
-    <FILE id="ufVjuv" name="GlobalKeyListener.h" compile="0" resource="0"
-          file="Source/GlobalKeyListener.h"/>
-    <FILE id="OugtfE" name="GlobalKeyListener.mm" compile="1" resource="0"
-          file="Source/GlobalKeyListener.mm"/>
+    <FILE id="qDAFUs" name="faders-icon.png" compile="0" resource="1" file="Assets/faders-icon.png"/>
   </MAINGROUP>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

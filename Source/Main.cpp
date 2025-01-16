@@ -7,103 +7,55 @@
 */
 
 #include <JuceHeader.h>
-#include "MainComponent.h"
+#include "FaderEngine.h"
+#include "TrayIconComponent.h"
 #include "GlobalKeyListener.h"
 
 //==============================================================================
-class faderkeysApplication : public juce::JUCEApplication
+class FaderKeysApplication : public juce::JUCEApplication
 {
 public:
-    //==============================================================================
-    faderkeysApplication() {}
+    FaderKeysApplication() {}
 
     const juce::String getApplicationName() override { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed() override { return true; }
 
     //==============================================================================
-    void initialise(const juce::String &commandLine) override
+    void initialise(const juce::String &) override
     {
-        // This method is where you should put your application's initialisation code..
+        // Create our core engine
+        faderEngine = std::make_unique<FaderEngine>();
 
-        mainWindow.reset(new MainWindow(getApplicationName()));
+        // Start the global key listener (assuming you use the same global key approach as before).
+        // The global key listener must know how to forward keycodes to faderEngine->handleGlobalKeycode.
+        startGlobalKeyListener(faderEngine.get());
 
-        // Start the global key listener, pointing to our MainComponent
-        if (auto *mc = dynamic_cast<MainComponent *>(mainWindow->getContentComponent()))
-            startGlobalKeyListener(mc);
+        // Create and show tray icon
+        trayIcon = std::make_unique<TrayIconComponent>(*faderEngine);
     }
 
     void shutdown() override
     {
-        stopGlobalKeyListener();
-
-        mainWindow = nullptr;
+        stopGlobalKeyListener(); // from your GlobalKeyListener code
+        trayIcon.reset();
+        faderEngine.reset();
     }
 
     //==============================================================================
     void systemRequestedQuit() override
     {
-        // This is called when the app is being asked to quit: you can ignore this
-        // request and let the app carry on running, or call quit() to allow the app to close.
         quit();
     }
 
-    void anotherInstanceStarted(const juce::String &commandLine) override
+    void anotherInstanceStarted(const juce::String &) override
     {
-        // When another instance of the app is launched while this one is running,
-        // this method is invoked, and the commandLine parameter tells you what
-        // the other instance's command-line arguments were.
     }
 
-    //==============================================================================
-    /*
-        This class implements the desktop window that contains an instance of
-        our MainComponent class.
-    */
-    class MainWindow : public juce::DocumentWindow
-    {
-    public:
-        MainWindow(juce::String name)
-            : DocumentWindow(name,
-                             juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId),
-                             DocumentWindow::allButtons)
-        {
-            setUsingNativeTitleBar(true);
-            setContentOwned(new MainComponent(), true);
-
-#if JUCE_IOS || JUCE_ANDROID
-            setFullScreen(true);
-#else
-            setResizable(true, true);
-            centreWithSize(getWidth(), getHeight());
-#endif
-
-            setVisible(true);
-        }
-
-        void closeButtonPressed() override
-        {
-            // This is called when the user tries to close this window. Here, we'll just
-            // ask the app to quit when this happens, but you can change this to do
-            // whatever you need.
-            JUCEApplication::getInstance()->systemRequestedQuit();
-        }
-
-        /* Note: Be careful if you override any DocumentWindow methods - the base
-           class uses a lot of them, so by overriding you might break its functionality.
-           It's best to do all your work in your content component instead, but if
-           you really have to override any DocumentWindow methods, make sure your
-           subclass also calls the superclass's method.
-        */
-
-    private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
-    };
-
 private:
-    std::unique_ptr<MainWindow> mainWindow;
+    std::unique_ptr<FaderEngine> faderEngine;
+    std::unique_ptr<TrayIconComponent> trayIcon;
 };
 
 //==============================================================================
-// This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION(faderkeysApplication)
+START_JUCE_APPLICATION(FaderKeysApplication)

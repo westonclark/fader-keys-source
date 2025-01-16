@@ -9,7 +9,7 @@
 */
 
 #include "GlobalKeyListener.h"
-#include "MainComponent.h"
+#include "FaderEngine.h"
 
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
@@ -18,7 +18,7 @@ namespace
 {
     CFMachPortRef eventTap = nullptr;
     CFRunLoopSourceRef runLoopSource = nullptr;
-    juce::WeakReference<juce::Component> globalKeyTarget;
+    FaderEngine* globalKeyEngine = nullptr;
     std::unique_ptr<juce::Timer> retryTimer;
 
     CGEventRef eventTapCallback(CGEventTapProxy proxy,
@@ -26,7 +26,7 @@ namespace
                                 CGEventRef event,
                                 void* userInfo)
     {
-        if (type == kCGEventKeyDown || type == kCGEventKeyUp)
+        if ((type == kCGEventKeyDown || type == kCGEventKeyUp) && globalKeyEngine != nullptr)
         {
             NSEvent* nsEvent = [NSEvent eventWithCGEvent:event];
             if (nsEvent != nil)
@@ -36,70 +36,70 @@ namespace
 
                 // Get caps lock state
                 NSUInteger flags = [NSEvent modifierFlags];
-                bool isCapsLockOn = (flags & NSEventModifierFlagCapsLock) != 0;
+                bool isCapsLockOn = ((flags & NSEventModifierFlagCapsLock) != 0);
 
+                // Only handle these key events if Caps Lock is on
                 if (isCapsLockOn)
                 {
-                    if (auto* targetComp = globalKeyTarget.get())
+                    // Forward to our FaderEngine
+                    // The engine’s handleGlobalKeycode(int keyCode, bool isKeyDown) is a normal C++ method
+                    juce::MessageManager::callAsync([=]()
                     {
-                        // Post to the JUCE message thread only when caps lock is on
-                        juce::MessageManager::callAsync([=]()
-                        {
-                            if (auto mc = dynamic_cast<MainComponent*>(targetComp))
-                                mc->handleGlobalKeycode((int)keyCode, isKeyDown);
-                        });
-                    }
+                        // Just call the engine function directly:
+                        globalKeyEngine->handleGlobalKeycode((int)keyCode, isKeyDown);
+                    });
 
-                    if (keyCode == 0  || // 'a'
-                        keyCode == 1  || // 's'
-                        keyCode == 2  || // 'd'
-                        keyCode == 3  || // 'f'
-                        keyCode == 5  || // 'g'
-                        keyCode == 4  || // 'h'
-                        keyCode == 38  || // 'j'
-                        keyCode == 40  || // 'k'
-
-                        keyCode == 12 || // 'q'
-                        keyCode == 13 || // 'w'
-                        keyCode == 14 || // 'e'
-                        keyCode == 15 || // 'r'
-                        keyCode == 17 || // 't'
-                        keyCode == 16 || // 'y'
-                        keyCode == 32 || // 'u'
-                        keyCode == 34 || // 'i'
-
-                        keyCode == 18 || // '1'
-                        keyCode == 19)   // '2'
+                    // If the keyCode is one we want to “swallow” (nudge keys, etc.), return nullptr
+                    // so the OS doesn't see it.
+                    switch (keyCode)
                     {
-                        // Return nullptr to swallow the event only when caps lock is on
-                        return nullptr;
+                        case 0:  // 'a'
+                        case 1:  // 's'
+                        case 2:  // 'd'
+                        case 3:  // 'f'
+                        case 5:  // 'g'
+                        case 4:  // 'h'
+                        case 38: // 'j'
+                        case 40: // 'k'
+
+                        case 12: // 'q'
+                        case 13: // 'w'
+                        case 14: // 'e'
+                        case 15: // 'r'
+                        case 17: // 't'
+                        case 16: // 'y'
+                        case 32: // 'u'
+                        case 34: // 'i'
+
+                        case 18: // '1'
+                        case 19: // '2'
+                            // Swallow the event
+                            return nullptr;
+
+                        default:
+                            break;
                     }
                 }
             }
         }
-
-        // Returning 'event' lets the OS proceed normally:
+        // If not swallowed, return event to let the OS proceed
         return event;
     }
 
     class EventTapRetryTimer : public juce::Timer
     {
     public:
-        EventTapRetryTimer(juce::Component* target) : targetComponent(target)
-        {
-            startTimer(1000); // Check every second
-        }
+        EventTapRetryTimer() { startTimer(1000); } // Check every second
 
         void timerCallback() override
         {
-            // Try to create event tap
             CGEventMask eventMask = (1 << kCGEventKeyDown) | (1 << kCGEventKeyUp);
             auto newEventTap = CGEventTapCreate(kCGSessionEventTap,
-                                              kCGHeadInsertEventTap,
-                                              kCGEventTapOptionDefault,
-                                              eventMask,
-                                              eventTapCallback,
-                                              nullptr);
+                                                kCGHeadInsertEventTap,
+                                                kCGEventTapOptionDefault,
+                                                eventMask,
+                                                eventTapCallback,
+                                                nullptr);
 
             if (newEventTap)
             {
@@ -110,22 +110,18 @@ namespace
                 CGEventTapEnable(eventTap, true);
 
                 DBG("GlobalKeyListener successfully started after permission grant.");
-                retryTimer.reset(); // Stop and delete timer
+                retryTimer.reset(); // Stop and delete
             }
         }
-
-    private:
-        juce::Component* targetComponent;
     };
 }
 
-void startGlobalKeyListener(juce::Component* target)
+void startGlobalKeyListener(FaderEngine* engine)
 {
-    // Don't start if we already have a tap
     if (eventTap != nullptr)
-        return;
+        return;  // already created
 
-    globalKeyTarget = target;
+    globalKeyEngine = engine;
 
     CGEventMask eventMask = (1 << kCGEventKeyDown) | (1 << kCGEventKeyUp);
     eventTap = CGEventTapCreate(kCGSessionEventTap,
@@ -138,8 +134,8 @@ void startGlobalKeyListener(juce::Component* target)
     if (!eventTap)
     {
         DBG("Failed to create event tap! Check Accessibility Permissions.");
-        // Start retry timer when initial attempt fails
-        retryTimer = std::make_unique<EventTapRetryTimer>(target);
+        // Start retry timer
+        retryTimer = std::make_unique<EventTapRetryTimer>();
         return;
     }
 
@@ -163,4 +159,6 @@ void stopGlobalKeyListener()
 
         DBG("GlobalKeyListener stopped.");
     }
+
+    globalKeyEngine = nullptr;
 }
