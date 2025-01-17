@@ -73,9 +73,9 @@ namespace TrayIconMac
                         statusItemWithLength:NSVariableStatusItemLength];
 
         NSImage* icon = nil;
-        if (auto* imageData = BinaryData::fadersicon_png)
+        if (auto* imageData = BinaryData::fadersiconsmall_png)
         {
-            NSData* data = [NSData dataWithBytes:imageData length:BinaryData::fadersicon_pngSize];
+            NSData* data = [NSData dataWithBytes:imageData length:BinaryData::fadersiconsmall_pngSize];
             icon = [[NSImage alloc] initWithData:data];
             if (icon != nil)
             {
@@ -85,18 +85,21 @@ namespace TrayIconMac
             }
         }
 
-        // Create the handler object
+        // Handler object
         itemHandler = [[StatusItemHandler alloc] initWithEngine:engine];
 
-        // Build an NSMenu
+        // Menu
         NSMenu* menu = [[NSMenu alloc] initWithTitle:@"FadersMenu"];
 
-        // Sensitivity submenu
-        NSMenu* sensitivityMenu = [[NSMenu alloc] initWithTitle:@"Sensitivity"];
-        NSMenuItem* sensitivityItem = [[NSMenuItem alloc] initWithTitle:@"Nudge Sensitivity"
-                                                               action:nil
-                                                        keyEquivalent:@""];
-        [sensitivityItem setSubmenu:sensitivityMenu];
+        // Title item
+        NSMenuItem* titleItem = [[NSMenuItem alloc] initWithTitle:@"Nudge Sensitivity"
+                                                         action:nil
+                                                  keyEquivalent:@""];
+        [titleItem setEnabled:NO];
+        [menu addItem:titleItem];
+
+        // Separator
+        [menu addItem:[NSMenuItem separatorItem]];
 
         // Sensitivity options
         lowItem = [[NSMenuItem alloc] initWithTitle:@"Low"
@@ -113,13 +116,11 @@ namespace TrayIconMac
         [mediumItem setTarget:itemHandler];
         [highItem setTarget:itemHandler];
 
-        [sensitivityMenu addItem:lowItem];
-        [sensitivityMenu addItem:mediumItem];
-        [sensitivityMenu addItem:highItem];
+        [menu addItem:lowItem];
+        [menu addItem:mediumItem];
+        [menu addItem:highItem];
 
-        [menu addItem:sensitivityItem];
-
-        // Set initial state
+        // Initial state
         updateSensitivityMenu(engine->getNudgeSensitivity());
 
         [statusItem setMenu:menu];
