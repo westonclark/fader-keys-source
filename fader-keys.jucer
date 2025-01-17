@@ -10,10 +10,8 @@
             file="Source/GlobalKeyListener.h"/>
       <FILE id="OugtfE" name="GlobalKeyListener.mm" compile="1" resource="0"
             file="Source/GlobalKeyListener.mm"/>
-      <FILE id="QMCAGK" name="TrayIconComponent.cpp" compile="1" resource="0"
-            file="Source/TrayIconComponent.cpp"/>
-      <FILE id="Df7mWH" name="TrayIconComponent.h" compile="0" resource="0"
-            file="Source/TrayIconComponent.h"/>
+      <FILE id="YJ7VJs" name="TrayIconMac.h" compile="0" resource="0" file="Source/TrayIconMac.h"/>
+      <FILE id="wkKYgJ" name="TrayIconMac.mm" compile="1" resource="0" file="Source/TrayIconMac.mm"/>
       <FILE id="HA35lF" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
     <FILE id="qDAFUs" name="faders-icon.png" compile="0" resource="1" file="Assets/faders-icon.png"/>
@@ -34,7 +32,7 @@
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs=" JUCE_MAC=1">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="fader-keys"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="fader-keys"/>

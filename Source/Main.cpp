@@ -8,8 +8,8 @@
 
 #include <JuceHeader.h>
 #include "FaderEngine.h"
-#include "TrayIconComponent.h"
 #include "GlobalKeyListener.h"
+#include "TrayIconMac.h"
 
 //==============================================================================
 class FaderKeysApplication : public juce::JUCEApplication
@@ -32,13 +32,16 @@ public:
         startGlobalKeyListener(faderEngine.get());
 
         // Create and show tray icon
-        trayIcon = std::make_unique<TrayIconComponent>(*faderEngine);
+        TrayIconMac::createStatusBarIcon(faderEngine.get());
+
+        // (Optional) start your global key listener or other features
+        // ...
     }
 
     void shutdown() override
     {
-        stopGlobalKeyListener(); // from your GlobalKeyListener code
-        trayIcon.reset();
+        TrayIconMac::removeStatusBarIcon();
+        stopGlobalKeyListener();
         faderEngine.reset();
     }
 
@@ -54,7 +57,6 @@ public:
 
 private:
     std::unique_ptr<FaderEngine> faderEngine;
-    std::unique_ptr<TrayIconComponent> trayIcon;
 };
 
 //==============================================================================
