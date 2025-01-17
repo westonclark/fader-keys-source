@@ -107,11 +107,15 @@ void FaderEngine::sendFaderMove(int faderIndex, int value)
     uint8_t lsbData[3] = {0xB0, (uint8_t)(0x20 | faderIndex), (uint8_t)lsb};
     uint8_t releaseData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};
     uint8_t releaseData2[3] = {0xB0, 0x2F, 0x00};
-
+    // Touch message
     midiOutput->sendMessageNow(juce::MidiMessage(touchData1, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(touchData2, 3));
+
+    // Move message
     midiOutput->sendMessageNow(juce::MidiMessage(msbData, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(lsbData, 3));
+
+    // Release message
     midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3));
 }

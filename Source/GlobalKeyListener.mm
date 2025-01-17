@@ -40,42 +40,21 @@ namespace
 
                 if (isCapsLockOn)
                 {
-                    // Forward to our FaderEngine
-                    // The engine’s handleGlobalKeycode(int keyCode, bool isKeyDown) is a normal C++ method
-                    juce::MessageManager::callAsync([=]()
+                    // Valid keycodes
+                    static const std::unordered_set<unsigned short> validKeyCodes = {
+                        0, 1, 2, 3, 5, 4, 38, 40,  // a-k
+                        12, 13, 14, 15, 17, 16, 32, 34,  // q-i
+                        18, 19  // 1-2
+                    };
+
+                    if (validKeyCodes.find(keyCode) != validKeyCodes.end())
                     {
-                        globalKeyEngine->handleGlobalKeycode((int)keyCode, isKeyDown);
-                    });
-
-
-                    switch (keyCode)
-                    {
-                        case 0:  // 'a'
-                        case 1:  // 's'
-                        case 2:  // 'd'
-                        case 3:  // 'f'
-                        case 5:  // 'g'
-                        case 4:  // 'h'
-                        case 38: // 'j'
-                        case 40: // 'k'
-
-                        case 12: // 'q'
-                        case 13: // 'w'
-                        case 14: // 'e'
-                        case 15: // 'r'
-                        case 17: // 't'
-                        case 16: // 'y'
-                        case 32: // 'u'
-                        case 34: // 'i'
-
-                        case 18: // '1'
-                        case 19: // '2'
-
-                            // Swallow the event so it doesn't get processed by the OS
-                            return nullptr;
-
-                        default:
-                            break;
+                        juce::MessageManager::callAsync([=]()
+                        {
+                            if (globalKeyEngine != nullptr)
+                                globalKeyEngine->handleGlobalKeycode((int)keyCode, isKeyDown);
+                        });
+                        return nullptr;  // Swallow event
                     }
                 }
             }
