@@ -128,6 +128,13 @@ void startGlobalKeyListener(FaderEngine* engine)
 
 void stopGlobalKeyListener()
 {
+    // Cancel any pending retry timer first
+    if (retryTimer != nullptr)
+    {
+        retryTimer->stopTimer();
+        retryTimer.reset();
+    }
+
     if (eventTap != nullptr)
     {
         CGEventTapEnable(eventTap, false);

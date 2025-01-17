@@ -30,7 +30,7 @@ private:
 
     // fader values
     static constexpr int numFaders = 8;
-    std::array<int, numFaders> faderValues;
+    std::array<int, numFaders> faderValues{};
 
     // Fader methods
     void nudgeFader(int faderIndex, int delta);
