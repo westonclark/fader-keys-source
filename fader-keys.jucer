@@ -32,7 +32,7 @@
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs=" JUCE_MAC=1">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs=" JUCE_MAC=1" customPList="&lt;key&gt;LSUIElement&lt;/key&gt;&#10;&lt;true/&gt;">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="fader-keys"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="fader-keys"/>

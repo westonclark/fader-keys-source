@@ -24,6 +24,9 @@ public:
     //==============================================================================
     void initialise(const juce::String &) override
     {
+        // Hide from dock - must be called early in initialization
+        juce::Process::setDockIconVisible(false);
+
         // Create our core engine
         faderEngine = std::make_unique<FaderEngine>();
 
