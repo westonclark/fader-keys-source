@@ -2,7 +2,7 @@
 
 #if JUCE_MAC
 
-class FaderEngine;
+#include "FaderEngine.h"
 
 // Wraping native macOS status bar creation
 namespace TrayIconMac
@@ -13,8 +13,8 @@ namespace TrayIconMac
     // Destroys the status item (call at shutdown).
     void removeStatusBarIcon();
 
-    // Updates the menu title to reflect the current fineTune state
-    void updateMenuTitle(bool fineTuneEnabled);
+    // Updates the menu title to reflect the current sensitivity state
+    void updateSensitivityMenu(FaderEngine::NudgeSensitivity sensitivity);
 }
 
 #endif

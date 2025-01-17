@@ -154,9 +154,23 @@ void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown)
     if (!isKeyDown)
         return;
 
-    static const int FINE_NUDGE = 146;
-    static const int COARSE_NUDGE = 291;
-    int nudgeAmount = fineTune ? FINE_NUDGE : COARSE_NUDGE;
+    static const int LOW_NUDGE = 146;
+    static const int MEDIUM_NUDGE = 291;
+    static const int HIGH_NUDGE = 582;
+
+    int nudgeAmount;
+    switch (sensitivity)
+    {
+    case NudgeSensitivity::Low:
+        nudgeAmount = LOW_NUDGE;
+        break;
+    case NudgeSensitivity::High:
+        nudgeAmount = HIGH_NUDGE;
+        break;
+    default:
+        nudgeAmount = MEDIUM_NUDGE;
+        break;
+    }
 
     switch (keyCode)
     {

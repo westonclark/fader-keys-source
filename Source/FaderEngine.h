@@ -6,14 +6,21 @@
 class FaderEngine : public juce::MidiInputCallback
 {
 public:
+    enum class NudgeSensitivity
+    {
+        Low,
+        Medium,
+        High
+    };
+
     FaderEngine();
     ~FaderEngine() override;
 
     void handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message) override;
 
-    // Called by the tray icon menu to toggle fineTune
-    bool getFineTune() const { return fineTune; }
-    void setFineTune(bool shouldBeFine) { fineTune = shouldBeFine; }
+    // Called by the tray icon menu to change sensitivity
+    NudgeSensitivity getNudgeSensitivity() const { return sensitivity; }
+    void setNudgeSensitivity(NudgeSensitivity newSensitivity) { sensitivity = newSensitivity; }
 
     void handleGlobalKeycode(int keyCode, bool isKeyDown);
 
@@ -24,9 +31,6 @@ private:
 
     std::unique_ptr<juce::MidiOutput> midiOutput;
     std::unique_ptr<juce::MidiInput> midiInput;
-
-    // finetune
-    bool fineTune = false;
 
     // fader values
     static constexpr int numFaders = 8;
@@ -39,6 +43,9 @@ private:
     // Bank methods
     void nudgeBankLeft();
     void nudgeBankRight();
+
+    // Replace fineTune with sensitivity
+    NudgeSensitivity sensitivity = NudgeSensitivity::Medium;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderEngine)
 };

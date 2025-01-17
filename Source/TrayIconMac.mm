@@ -11,7 +11,9 @@
     FaderEngine* engine;
 }
 - (instancetype)initWithEngine:(FaderEngine*)eng;
-- (void)toggleFineTune:(id)sender;
+- (void)setLowSensitivity:(id)sender;
+- (void)setMediumSensitivity:(id)sender;
+- (void)setHighSensitivity:(id)sender;
 @end
 
 @implementation StatusItemHandler
@@ -24,13 +26,30 @@
     return self;
 }
 
-- (void)toggleFineTune:(id)sender
+- (void)setLowSensitivity:(id)sender
 {
     if (engine != nullptr)
     {
-        bool current = engine->getFineTune();
-        engine->setFineTune(!current);
-        TrayIconMac::updateMenuTitle(!current);
+        engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::Low);
+        ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::Low);
+    }
+}
+
+- (void)setMediumSensitivity:(id)sender
+{
+    if (engine != nullptr)
+    {
+        engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::Medium);
+        ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::Medium);
+    }
+}
+
+- (void)setHighSensitivity:(id)sender
+{
+    if (engine != nullptr)
+    {
+        engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::High);
+        ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::High);
     }
 }
 
@@ -41,7 +60,9 @@ namespace TrayIconMac
     // We keep a static reference to our NSStatusItem and the handler:
     static NSStatusItem* statusItem = nil;
     static StatusItemHandler* itemHandler = nil;
-    static NSMenuItem* toggleItem = nil;
+    static NSMenuItem* lowItem = nil;
+    static NSMenuItem* mediumItem = nil;
+    static NSMenuItem* highItem = nil;
 
     void createStatusBarIcon (FaderEngine* engine)
     {
@@ -70,14 +91,36 @@ namespace TrayIconMac
         // Build an NSMenu
         NSMenu* menu = [[NSMenu alloc] initWithTitle:@"FadersMenu"];
 
-        // The single toggle item:
-        bool isFine = (engine != nullptr) ? engine->getFineTune() : false;
-        toggleItem = [[NSMenuItem alloc] initWithTitle:@"Fine Tune"
-                                              action:@selector(toggleFineTune:)
+        // Sensitivity submenu
+        NSMenu* sensitivityMenu = [[NSMenu alloc] initWithTitle:@"Sensitivity"];
+        NSMenuItem* sensitivityItem = [[NSMenuItem alloc] initWithTitle:@"Nudge Sensitivity"
+                                                               action:nil
+                                                        keyEquivalent:@""];
+        [sensitivityItem setSubmenu:sensitivityMenu];
+
+        // Sensitivity options
+        lowItem = [[NSMenuItem alloc] initWithTitle:@"Low"
+                                           action:@selector(setLowSensitivity:)
+                                    keyEquivalent:@""];
+        mediumItem = [[NSMenuItem alloc] initWithTitle:@"Medium"
+                                              action:@selector(setMediumSensitivity:)
                                        keyEquivalent:@""];
-        [toggleItem setTarget:itemHandler];
-        [toggleItem setState:(isFine ? NSOnState : NSOffState)];
-        [menu addItem:toggleItem];
+        highItem = [[NSMenuItem alloc] initWithTitle:@"High"
+                                            action:@selector(setHighSensitivity:)
+                                     keyEquivalent:@""];
+
+        [lowItem setTarget:itemHandler];
+        [mediumItem setTarget:itemHandler];
+        [highItem setTarget:itemHandler];
+
+        [sensitivityMenu addItem:lowItem];
+        [sensitivityMenu addItem:mediumItem];
+        [sensitivityMenu addItem:highItem];
+
+        [menu addItem:sensitivityItem];
+
+        // Set initial state
+        updateSensitivityMenu(engine->getNudgeSensitivity());
 
         [statusItem setMenu:menu];
         [statusItem setHighlightMode:YES];
@@ -91,14 +134,18 @@ namespace TrayIconMac
             statusItem = nil;
         }
         itemHandler = nil;
-        toggleItem = nil;
+        lowItem = nil;
+        mediumItem = nil;
+        highItem = nil;
     }
 
-    void updateMenuTitle (bool fineTuneEnabled)
+    void updateSensitivityMenu(FaderEngine::NudgeSensitivity sensitivity)
     {
-        if (toggleItem != nil)
+        if (lowItem && mediumItem && highItem)
         {
-            [toggleItem setState:(fineTuneEnabled ? NSOnState : NSOffState)];
+            [lowItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Low ? NSOnState : NSOffState)];
+            [mediumItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Medium ? NSOnState : NSOffState)];
+            [highItem setState:(sensitivity == FaderEngine::NudgeSensitivity::High ? NSOnState : NSOffState)];
         }
     }
 }
