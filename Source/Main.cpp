@@ -30,15 +30,11 @@ public:
         // Create our core engine
         faderEngine = std::make_unique<FaderEngine>();
 
-        // Start the global key listener (assuming you use the same global key approach as before).
-        // The global key listener must know how to forward keycodes to faderEngine->handleGlobalKeycode.
-        startGlobalKeyListener(faderEngine.get());
-
         // Create and show tray icon
         TrayIconMac::createStatusBarIcon(faderEngine.get());
 
-        // (Optional) start your global key listener or other features
-        // ...
+        // Start the global key listener
+        startGlobalKeyListener(faderEngine.get());
     }
 
     void shutdown() override

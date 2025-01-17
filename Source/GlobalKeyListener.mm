@@ -38,19 +38,16 @@ namespace
                 NSUInteger flags = [NSEvent modifierFlags];
                 bool isCapsLockOn = ((flags & NSEventModifierFlagCapsLock) != 0);
 
-                // Only handle these key events if Caps Lock is on
                 if (isCapsLockOn)
                 {
                     // Forward to our FaderEngine
                     // The engine’s handleGlobalKeycode(int keyCode, bool isKeyDown) is a normal C++ method
                     juce::MessageManager::callAsync([=]()
                     {
-                        // Just call the engine function directly:
                         globalKeyEngine->handleGlobalKeycode((int)keyCode, isKeyDown);
                     });
 
-                    // If the keyCode is one we want to “swallow” (nudge keys, etc.), return nullptr
-                    // so the OS doesn't see it.
+
                     switch (keyCode)
                     {
                         case 0:  // 'a'
@@ -73,7 +70,8 @@ namespace
 
                         case 18: // '1'
                         case 19: // '2'
-                            // Swallow the event
+
+                            // Swallow the event so it doesn't get processed by the OS
                             return nullptr;
 
                         default:
@@ -86,10 +84,11 @@ namespace
         return event;
     }
 
+// Keep retrying to create the event tap until user grants permission
     class EventTapRetryTimer : public juce::Timer
     {
     public:
-        EventTapRetryTimer() { startTimer(1000); } // Check every second
+        EventTapRetryTimer() { startTimer(1000); }
 
         void timerCallback() override
         {
@@ -103,14 +102,13 @@ namespace
 
             if (newEventTap)
             {
-                // Success! Set up the event tap
                 eventTap = newEventTap;
                 runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
                 CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
                 CGEventTapEnable(eventTap, true);
 
                 DBG("GlobalKeyListener successfully started after permission grant.");
-                retryTimer.reset(); // Stop and delete
+                retryTimer.reset();
             }
         }
     };
@@ -119,7 +117,7 @@ namespace
 void startGlobalKeyListener(FaderEngine* engine)
 {
     if (eventTap != nullptr)
-        return;  // already created
+        return;
 
     globalKeyEngine = engine;
 
@@ -134,7 +132,7 @@ void startGlobalKeyListener(FaderEngine* engine)
     if (!eventTap)
     {
         DBG("Failed to create event tap! Check Accessibility Permissions.");
-        // Start retry timer
+        // Start retry timer if we failed to create the event tap on first try
         retryTimer = std::make_unique<EventTapRetryTimer>();
         return;
     }

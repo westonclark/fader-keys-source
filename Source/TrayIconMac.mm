@@ -2,7 +2,7 @@
 
 #import <Cocoa/Cocoa.h>
 #include "TrayIconMac.h"
-#include "FaderEngine.h"    // so we can call engine->setFineTune(...)
+#include "FaderEngine.h"
 
 // A simple Objective‐C helper “handler” that can forward clicks to C++:
 @interface StatusItemHandler : NSObject
@@ -30,8 +30,6 @@
     {
         bool current = engine->getFineTune();
         engine->setFineTune(!current);
-
-        // Update the menu item’s title to reflect the new state:
         TrayIconMac::updateMenuTitle(!current);
     }
 }
@@ -47,7 +45,7 @@ namespace TrayIconMac
 
     void createStatusBarIcon (FaderEngine* engine)
     {
-        if (statusItem != nil) return; // Already created?
+        if (statusItem != nil) return;
 
         // Create the status item (with variable length)
         statusItem = [[NSStatusBar systemStatusBar]
@@ -60,8 +58,8 @@ namespace TrayIconMac
             icon = [[NSImage alloc] initWithData:data];
             if (icon != nil)
             {
-                [icon setTemplate:YES];   // so the OS can adapt it to dark mode
-                [icon setSize:NSMakeSize(18, 18)]; // Set to standard menu bar size
+                [icon setTemplate:YES];
+                [icon setSize:NSMakeSize(18, 18)];
                 [statusItem setImage:icon];
             }
         }
@@ -72,20 +70,16 @@ namespace TrayIconMac
         // Build an NSMenu
         NSMenu* menu = [[NSMenu alloc] initWithTitle:@"FadersMenu"];
 
-        // Our single toggle item:
+        // The single toggle item:
         bool isFine = (engine != nullptr) ? engine->getFineTune() : false;
         toggleItem = [[NSMenuItem alloc] initWithTitle:@"Fine Tune"
                                               action:@selector(toggleFineTune:)
                                        keyEquivalent:@""];
         [toggleItem setTarget:itemHandler];
         [toggleItem setState:(isFine ? NSOnState : NSOffState)];
-
         [menu addItem:toggleItem];
 
-        // Attach the menu to the status item
         [statusItem setMenu:menu];
-
-        // We can highlight automatically while the menu is open
         [statusItem setHighlightMode:YES];
     }
 
@@ -109,4 +103,4 @@ namespace TrayIconMac
     }
 }
 
-#endif // JUCE_MAC
+#endif

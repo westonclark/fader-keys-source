@@ -3,7 +3,6 @@
 FaderEngine::FaderEngine()
 {
     setupMidiDevices();
-    initializeFaders();
 }
 
 FaderEngine::~FaderEngine()
@@ -38,12 +37,10 @@ void FaderEngine::closeMidiDevices()
     midiOutput.reset();
 }
 
-//==============================================================================
-// Keep the same logic you had in MainComponent::handleIncomingMidiMessage:
-void FaderEngine::handleIncomingMidiMessage(juce::MidiInput * /*source*/,
+void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
                                             const juce::MidiMessage &message)
 {
-    // Pro Tools’s ping note, etc...
+    // Pro Tools’s ping
     if (message.isNoteOff() && message.getVelocity() == 0 && message.getNoteNumber() == 0)
     {
         if (midiOutput != nullptr)
@@ -51,6 +48,7 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput * /*source*/,
         return;
     }
 
+    // HUI Messages
     if (message.isController())
     {
         int controllerNumber = message.getControllerNumber();
@@ -75,51 +73,19 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput * /*source*/,
                 int newValue = (msb << 7) | lsb;
                 faderValues[i] = newValue;
 
-                // If you need to notify external, do so here or via a callback
-                // but there's no GUI slider to update now.
-
                 break;
             }
         }
     }
 }
 
-//==============================================================================
-void FaderEngine::initializeFaders()
-{
-    for (int i = 0; i < numFaders; ++i)
-    {
-        // Default fader value
-        faderValues[i] = 12256;
-    }
-
-    // Setup the same key bindings as before:
-    keyToFaderIndexUp['q'] = 0;
-    keyToFaderIndexUp['w'] = 1;
-    keyToFaderIndexUp['e'] = 2;
-    keyToFaderIndexUp['r'] = 3;
-    keyToFaderIndexUp['t'] = 4;
-    keyToFaderIndexUp['y'] = 5;
-    keyToFaderIndexUp['u'] = 6;
-    keyToFaderIndexUp['i'] = 7;
-
-    keyToFaderIndexDown['a'] = 0;
-    keyToFaderIndexDown['s'] = 1;
-    keyToFaderIndexDown['d'] = 2;
-    keyToFaderIndexDown['f'] = 3;
-    keyToFaderIndexDown['g'] = 4;
-    keyToFaderIndexDown['h'] = 5;
-    keyToFaderIndexDown['j'] = 6;
-    keyToFaderIndexDown['k'] = 7;
-}
-
 void FaderEngine::nudgeFader(int faderIndex, int delta)
 {
     int newValue = faderValues[faderIndex] + delta;
     newValue = juce::jlimit(0, 16383, newValue);
+
     faderValues[faderIndex] = newValue;
 
-    // If you had any external UI callbacks or notifications, call them here
     sendFaderMove(faderIndex, newValue);
 }
 
@@ -135,7 +101,6 @@ void FaderEngine::sendFaderMove(int faderIndex, int value)
     int lsb = value & 0x7F;
     int msb = (value >> 7) & 0x7F;
 
-    // Similar HUI messages to before
     uint8_t touchData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};
     uint8_t touchData2[3] = {0xB0, 0x2F, 0x40};
     uint8_t msbData[3] = {0xB0, (uint8_t)faderIndex, (uint8_t)msb};
@@ -180,14 +145,12 @@ void FaderEngine::nudgeBankRight()
     }
 }
 
-//==============================================================================
 void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown)
 {
     if (!isKeyDown)
         return;
 
-    // If fineTune is true, use smaller increments
-    int nudgeAmount = fineTune ? 160 : 320;
+    int nudgeAmount = fineTune ? 146 : 291;
 
     switch (keyCode)
     {

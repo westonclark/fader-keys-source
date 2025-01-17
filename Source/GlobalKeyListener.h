@@ -12,9 +12,9 @@
 
 #include <JuceHeader.h>
 
-// Forward declare your engine class so we don't have circular includes
+// Forward declare fader engine class so we don't have circular includes
 class FaderEngine;
 
-// Call these to start/stop capturing keys globally:
+// Called to start/stop capturing keys globally:
 void startGlobalKeyListener(FaderEngine *engine);
 void stopGlobalKeyListener();
