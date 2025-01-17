@@ -15,7 +15,11 @@
 class FaderKeysApplication : public juce::JUCEApplication
 {
 public:
-    FaderKeysApplication() {}
+    FaderKeysApplication()
+    {
+        // Hide the dock icon before initialization
+        juce::Process::setDockIconVisible(false);
+    }
 
     const juce::String getApplicationName() override { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
@@ -24,10 +28,7 @@ public:
     //==============================================================================
     void initialise(const juce::String &) override
     {
-        // Hide from dock - must be called early in initialization
-        juce::Process::setDockIconVisible(false);
-
-        // Create our core engine
+        // Create the core engine
         faderEngine = std::make_unique<FaderEngine>();
 
         // Create and show tray icon

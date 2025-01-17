@@ -86,6 +86,9 @@ namespace
                 CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
                 CGEventTapEnable(eventTap, true);
 
+                // Re-hide the dock icon after permission is granted
+                juce::Process::setDockIconVisible(false);
+
                 DBG("GlobalKeyListener successfully started after permission grant.");
                 retryTimer.reset();
             }

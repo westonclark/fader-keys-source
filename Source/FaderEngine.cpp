@@ -14,12 +14,12 @@ void FaderEngine::setupMidiDevices()
 {
     midiOutput = juce::MidiOutput::createNewDevice("Fader Keys MIDI Output");
     if (midiOutput == nullptr)
-        DBG("Failed to create the virtual MIDI output device!");
+        DBG("Failed to create virtual MIDI output device");
 
     midiInput = juce::MidiInput::createNewDevice("Fader Keys MIDI Input", this);
     if (midiInput == nullptr)
     {
-        DBG("Failed to create the virtual MIDI input device!");
+        DBG("Failed to create virtual MIDI input device");
     }
     else
     {
