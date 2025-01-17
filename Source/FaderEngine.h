@@ -7,7 +7,7 @@ class FaderEngine : public juce::MidiInputCallback
 {
 public:
     FaderEngine();
-    ~FaderEngine() override = default;
+    ~FaderEngine() override;
 
     void handleIncomingMidiMessage(juce::MidiInput *source, const juce::MidiMessage &message) override;
 
