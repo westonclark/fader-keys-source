@@ -14,12 +14,10 @@
       <FILE id="wkKYgJ" name="TrayIconMac.mm" compile="1" resource="0" file="Source/TrayIconMac.mm"/>
       <FILE id="HA35lF" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
-    <FILE id="b6eCTJ" name="faders-icon-large.png" compile="0" resource="1"
-          file="Assets/faders-icon-large.png"/>
-    <FILE id="BBEMp1" name="faders-icon-small.png" compile="0" resource="1"
-          file="Assets/faders-icon-small.png"/>
-    <FILE id="szQeN4" name="faders-icon-white.icns" compile="0" resource="1"
-          file="Assets/faders-icon-white.icns"/>
+    <FILE id="H8IfrM" name="faders-icon-large.png" compile="0" resource="1"
+          file="Resources/faders-icon-large.png"/>
+    <FILE id="pLy7cM" name="faders-icon-small.png" compile="0" resource="1"
+          file="Resources/faders-icon-small.png"/>
   </MAINGROUP>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -37,11 +35,11 @@
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs=" JUCE_MAC=1" customPList="&lt;plist&gt;&#10;  &lt;dict&gt;&#10;    &lt;key&gt;LSUIElement&lt;/key&gt;&#10;    &lt;string&gt;1&lt;/string&gt;&#10;    &lt;key&gt;CFBundleIconFile&lt;/key&gt;&#10;    &lt;string&gt;fader-icons-white.icns&lt;/string&gt;&#10;  &lt;/dict&gt;&#10;&lt;/plist&gt;"
-               bigIcon="" smallIcon="">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs=" JUCE_MAC=1" customPList="&lt;plist&gt;&#10;  &lt;dict&gt;&#10;    &lt;key&gt;LSUIElement&lt;/key&gt;&#10;    &lt;string&gt;1&lt;/string&gt;&#10;  &lt;/dict&gt;&#10;&lt;/plist&gt;"
+               bigIcon="H8IfrM" smallIcon="pLy7cM">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="fader-keys"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="fader-keys"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Fader Keys"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../JUCE/modules"/>

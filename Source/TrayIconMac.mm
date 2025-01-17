@@ -14,6 +14,7 @@
 - (void)setLowSensitivity:(id)sender;
 - (void)setMediumSensitivity:(id)sender;
 - (void)setHighSensitivity:(id)sender;
+- (void)quitApp:(id)sender;
 @end
 
 @implementation StatusItemHandler
@@ -51,6 +52,12 @@
         engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::High);
         ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::High);
     }
+}
+
+- (void)quitApp:(id)sender
+{
+    // Use JUCE's quit mechanism to ensure a clean exit
+    juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
 
 @end
@@ -119,6 +126,16 @@ namespace TrayIconMac
         [menu addItem:lowItem];
         [menu addItem:mediumItem];
         [menu addItem:highItem];
+
+        // Separator
+        [menu addItem:[NSMenuItem separatorItem]];
+
+        // Quit item
+        NSMenuItem* quitItem = [[NSMenuItem alloc] initWithTitle:@"Quit Fader Keys"
+                                                        action:@selector(quitApp:)
+                                                 keyEquivalent:@""];
+        [quitItem setTarget:itemHandler];
+        [menu addItem:quitItem];
 
         // Initial state
         updateSensitivityMenu(engine->getNudgeSensitivity());
