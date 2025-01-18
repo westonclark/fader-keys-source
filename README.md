@@ -1,6 +1,6 @@
 # Fader Keys
 
-Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intuitive way to adjust multiple faders while keeping one hand free for other tasks.
+Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intuitive way to adjust multiple faders without an external bank of faders.
 
 ## Features
 
