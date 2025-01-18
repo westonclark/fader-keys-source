@@ -10,19 +10,21 @@ Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intui
 
 ## Keyboard Controls
 
-<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" width="50%" alt="Keyboard Control Layout">
+<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" alt="Keyboard Control Layout">
 
-- **CAPS LOCK**: Toggle application on/off
-- **1**: Bank faders left
-- **2**: Bank faders right
-- **Q**, **A**: Fader 1 (Up/Down)
-- **W**, **S**: Fader 2 (Up/Down)
-- **E**, **D**: Fader 3 (Up/Down)
-- **R**, **F**: Fader 4 (Up/Down)
-- **T**, **G**: Fader 5 (Up/Down)
-- **Y**, **H**: Fader 6 (Up/Down)
-- **U**, **J**: Fader 7 (Up/Down)
-- **I**, **K**: Fader 8 (Up/Down)
+| Keys          | Action                    |
+| ------------- | ------------------------- |
+| **CAPS LOCK** | Toggle application on/off |
+| **1**         | Bank faders left          |
+| **2**         | Bank faders right         |
+| **Q**, **A**  | Fader 1 (Up/Down)         |
+| **W**, **S**  | Fader 2 (Up/Down)         |
+| **E**, **D**  | Fader 3 (Up/Down)         |
+| **R**, **F**  | Fader 4 (Up/Down)         |
+| **T**, **G**  | Fader 5 (Up/Down)         |
+| **Y**, **H**  | Fader 6 (Up/Down)         |
+| **U**, **J**  | Fader 7 (Up/Down)         |
+| **I**, **K**  | Fader 8 (Up/Down)         |
 
 ## Installation & Setup
 
