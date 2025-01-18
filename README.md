@@ -8,9 +8,9 @@ Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intui
 - Adjustable fader sensitivity
 - Compatible with Pro Tools HUI protocol
 
-## Keyboard Controls
+## Controls
 
-<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" alt="Keyboard Control Layout">
+<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" width="75%" alt="Keyboard Control Layout">
 
 | Keys          | Action                    |
 | ------------- | ------------------------- |
