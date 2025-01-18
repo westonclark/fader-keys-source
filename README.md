@@ -1,51 +1,75 @@
 # Fader Keys
 
-A Solution to control faders in your DAW with just the keys on your QWERTY keyboard
+Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intuitive way to adjust multiple faders while keeping one hand free for other tasks.
 
-## Controls
+## Features
 
-CAPS LOCK - Turns the App on and off
-1 - Nudge the faders left
-2 - Nudge the faders right
+- Control up to 8 faders simultaneously
+- Adjustable fader sensitivity
+- Compatible with Pro Tools HUI protocol
 
-- `Q`,`A` - Fader 1 up,down
-- `W`,`S` - Fader 2 up,down
-- `E`,`D` - Fader 3 up,down
-- `R`,`F` - Fader 4 up,down
-- `T`,`G` - Fader 5 up,down
-- `Y`,`H` - Fader 6 up,down
-- `U`,`J` - Fader 7 up,down
-- `I`,`K` - Fader 8 up,down
+## Keyboard Controls
 
-The app can be used two differnt ways
+### Global Controls
 
-1. (Prefered) Left hand on the keyboard controlling faders 1-4, Right hand on the mouse (doing mouse stuff)
-2. Both hands on the keyboard controlling all 8 faders
+- **CAPS LOCK**: Toggle application on/off
+- **1**: Bank faders left
+- **2**: Bank faders right
 
-![Controls](https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7)
+### Fader Controls
 
-## Setup
+| Fader | Up  | Down |
+| ----- | --- | ---- |
+| 1     | `Q` | `A`  |
+| 2     | `W` | `S`  |
+| 3     | `E` | `D`  |
+| 4     | `R` | `F`  |
+| 5     | `T` | `G`  |
+| 6     | `Y` | `H`  |
+| 7     | `U` | `J`  |
+| 8     | `I` | `K`  |
 
-- Install Fader Keys from the .pkg file and launch it from your /Applications folder
+<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" width="50%" alt="Keyboard Control Layout">
 
-<img width="800" alt="Screenshot 2025-01-18 at 9 13 37 AM" src="https://github.com/user-attachments/assets/38561145-fbb5-4cda-a124-de13cd1c25e7" />
+## Installation & Setup
 
-- On first launch, Fader Keys should prompt you to grant it access to access your keybaord viea accisibility settings, if this is not done, the application cannot see your keybaord strokes and will not be able to work
+### 1. Install the Application
 
-<img width="827" alt="Accessibility" src="https://github.com/user-attachments/assets/3e533cc7-366f-467e-8d6c-336218ca46f5" />
+- Download the latest version from our [GitHub Releases page](https://github.com/YourUsername/FaderKeys/releases/latest)
+- Run the downloaded `.pkg` installer
 
-- You will see an icon for Fader Keys in the top menu bar of your mac here you can set the fader nudge sensitivity
+- Launch Fader Keys from your Applications folder
 
-<img width="191" alt="Fader Keys Menu" src="https://github.com/user-attachments/assets/9268caa6-f9f1-41da-ba01-95d6fe44f992" />
+### 2. Grant Accessibility Permissions
 
-- In order for Protools to see Fader Keys, you muset add it to the list of MIDI Input Devices under Setup -> MIDI -> MIDI Input Devices
+- When prompted, grant Fader Keys access to keyboard input via System Preferences
+- This step is required for the application to function
 
-<img width="431" alt="Midi Input Enable" src="https://github.com/user-attachments/assets/8de6b837-3589-4f5b-97af-dbb4095a79be" />
+<img src="https://github.com/user-attachments/assets/3e533cc7-366f-467e-8d6c-336218ca46f5" width="50%" alt="Accessibility Settings">
 
-- Once Fader Keys is selected as a valid MIDI Input, you must add it as a HUI controller under Setup -> Periphreals
+### 3. Configure Menu Bar Settings
 
-<img width="962" alt="Periphreals Setup" src="https://github.com/user-attachments/assets/8f3c6e2e-6c1f-4249-8544-246c7885916b" />
+- Locate the Fader Keys icon in your menu bar
+- Adjust fader sensitivity to your preference (low ~.5db moves, medium ~1db moves, high ~2db moves)
 
-And just like that you're good to go! If you would like to edit the way protools edit/mix windows react to banking up and down with the fader selections you can find it under ProTools -> Settings -> Mixing Tab
+### 4. Pro Tools Configuration
 
-<img width="833" alt="Screenshot 2025-01-17 at 2 40 58 PM" src="https://github.com/user-attachments/assets/63637c14-4e0f-42d4-86b0-e4f643e84683" />
+#### Enable MIDI Input
+
+1. Navigate to `Setup → MIDI → MIDI Input Devices`
+2. Check the box next to Fader Keys
+
+<img src="https://github.com/user-attachments/assets/8de6b837-3589-4f5b-97af-dbb4095a79be" width="50%" alt="MIDI Input Setup">
+
+#### Configure HUI Controller
+
+1. Go to `Setup → Peripherals`
+2. Add Fader Keys as a HUI controller
+
+<img src="https://github.com/user-attachments/assets/8f3c6e2e-6c1f-4249-8544-246c7885916b" width="50%" alt="Peripherals Setup">
+
+### 5. Optional: Customize Mix Window Behavior
+
+- Adjust mix window banking behavior in `Pro Tools → Settings → Mixing`
+
+<img src="https://github.com/user-attachments/assets/63637c14-4e0f-42d4-86b0-e4f643e84683" width="50%" alt="Mix Window Settings">
