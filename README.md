@@ -35,7 +35,7 @@ Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intui
 
 ### 1. Install the Application
 
-- Download the latest version from our [GitHub Releases page](https://github.com/YourUsername/FaderKeys/releases/latest)
+- Download the `.pkg` file from the latest version from our [GitHub Releases page](https://github.com/westonclark/fader-keys/releases)
 - Run the downloaded `.pkg` installer
 
 - Launch Fader Keys from your Applications folder
