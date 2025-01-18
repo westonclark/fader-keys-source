@@ -29,7 +29,7 @@ Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intui
 | 7     | `U` | `J`  |
 | 8     | `I` | `K`  |
 
-<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" width="50%" alt="Keyboard Control Layout">
+<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" alt="Keyboard Control Layout">
 
 ## Installation & Setup
 
@@ -51,6 +51,8 @@ Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intui
 
 - Locate the Fader Keys icon in your menu bar
 - Adjust fader sensitivity to your preference (low ~.5db moves, medium ~1db moves, high ~2db moves)
+  
+<img width="358" alt="Screenshot 2025-01-18 at 10 49 51 AM" src="https://github.com/user-attachments/assets/a3f873dd-501a-4a2a-a017-ee35afb52a67" />
 
 ### 4. Pro Tools Configuration
 
