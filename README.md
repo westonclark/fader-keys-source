@@ -12,11 +12,11 @@ Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intui
 
 ### Global Controls
 
+<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" alt="Keyboard Control Layout">
+
 - **CAPS LOCK**: Toggle application on/off
 - **1**: Bank faders left
 - **2**: Bank faders right
-
-### Fader Controls
 
 | Fader | Up  | Down |
 | ----- | --- | ---- |
@@ -28,8 +28,6 @@ Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intui
 | 6     | `Y` | `H`  |
 | 7     | `U` | `J`  |
 | 8     | `I` | `K`  |
-
-<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" alt="Keyboard Control Layout">
 
 ## Installation & Setup
 
