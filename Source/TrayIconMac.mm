@@ -101,7 +101,7 @@ namespace TrayIconMac
             {
                 // Don't set as template if you want to preserve colors
                 [normalIcon setTemplate:NO];
-                [normalIcon setSize:NSMakeSize(18, 18)];
+                [normalIcon setSize:NSMakeSize(24, 24)];
                 [statusItem setImage:normalIcon];
             }
         }
@@ -116,7 +116,7 @@ namespace TrayIconMac
             {
                 // Don't set as template for the highlighted version either
                 [highlightedIcon setTemplate:NO];
-                [highlightedIcon setSize:NSMakeSize(18, 18)];
+                [highlightedIcon setSize:NSMakeSize(24, 24)];
             }
         }
 
