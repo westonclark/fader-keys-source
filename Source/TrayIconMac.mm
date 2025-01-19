@@ -4,7 +4,13 @@
 #include "TrayIconMac.h"
 #include "FaderEngine.h"
 
-// A simple Objective‐C helper “handler” that can forward clicks to C++:
+// Forward declaration so we can update the icon after creation
+namespace TrayIconMac
+{
+    void updateCapsLockState (bool capsLockOn);
+}
+
+// A simple Objective‐C helper "handler" that can forward clicks to C++:
 @interface StatusItemHandler : NSObject
 {
 @private
@@ -64,44 +70,66 @@
 
 namespace TrayIconMac
 {
-    // We keep a static reference to our NSStatusItem and the handler:
+    // We keep a static reference to our NSStatusItem, the handler, and menu items:
     static NSStatusItem* statusItem = nil;
     static StatusItemHandler* itemHandler = nil;
     static NSMenuItem* lowItem = nil;
     static NSMenuItem* mediumItem = nil;
     static NSMenuItem* highItem = nil;
 
+    // Store pointers to both the normal and highlighted versions of your icon
+    static NSImage* normalIcon = nil;
+    static NSImage* highlightedIcon = nil;
+
+    // Creates the NSStatusItem, attaches a native macOS menu.
     void createStatusBarIcon (FaderEngine* engine)
     {
-        if (statusItem != nil) return;
+        if (statusItem != nil)
+            return;
 
         // Create the status item (with variable length)
         statusItem = [[NSStatusBar systemStatusBar]
                         statusItemWithLength:NSVariableStatusItemLength];
 
-        NSImage* icon = nil;
+        // Load the normal icon
         if (auto* imageData = BinaryData::fadersiconsmall_png)
         {
             NSData* data = [NSData dataWithBytes:imageData length:BinaryData::fadersiconsmall_pngSize];
-            icon = [[NSImage alloc] initWithData:data];
-            if (icon != nil)
+            normalIcon = [[NSImage alloc] initWithData:data];
+
+            if (normalIcon != nil)
             {
-                [icon setTemplate:YES];
-                [icon setSize:NSMakeSize(18, 18)];
-                [statusItem setImage:icon];
+                // Don't set as template if you want to preserve colors
+                [normalIcon setTemplate:NO];
+                [normalIcon setSize:NSMakeSize(18, 18)];
+                [statusItem setImage:normalIcon];
+            }
+        }
+
+        // Load the highlighted icon
+        if (auto* highlightData = BinaryData::fadersiconsmallhighlighted_png)
+        {
+            NSData* data = [NSData dataWithBytes:highlightData length:BinaryData::fadersiconsmallhighlighted_pngSize];
+            highlightedIcon = [[NSImage alloc] initWithData:data];
+
+            if (highlightedIcon != nil)
+            {
+                // Don't set as template for the highlighted version either
+                [highlightedIcon setTemplate:NO];
+                [highlightedIcon setSize:NSMakeSize(18, 18)];
             }
         }
 
         // Handler object
         itemHandler = [[StatusItemHandler alloc] initWithEngine:engine];
 
-        // Menu
+        // Create the menu
         NSMenu* menu = [[NSMenu alloc] initWithTitle:@"FadersMenu"];
 
         // Title item
         NSMenuItem* titleItem = [[NSMenuItem alloc] initWithTitle:@"Nudge Sensitivity"
-                                                         action:nil
-                                                  keyEquivalent:@""];
+                                                           action:nil
+                                                    keyEquivalent:@""];
         [titleItem setEnabled:NO];
         [menu addItem:titleItem];
 
@@ -110,14 +138,14 @@ namespace TrayIconMac
 
         // Sensitivity options
         lowItem = [[NSMenuItem alloc] initWithTitle:@"Low"
-                                           action:@selector(setLowSensitivity:)
-                                    keyEquivalent:@""];
+                                             action:@selector(setLowSensitivity:)
+                                      keyEquivalent:@""];
         mediumItem = [[NSMenuItem alloc] initWithTitle:@"Medium"
-                                              action:@selector(setMediumSensitivity:)
-                                       keyEquivalent:@""];
+                                                action:@selector(setMediumSensitivity:)
+                                         keyEquivalent:@""];
         highItem = [[NSMenuItem alloc] initWithTitle:@"High"
-                                            action:@selector(setHighSensitivity:)
-                                     keyEquivalent:@""];
+                                              action:@selector(setHighSensitivity:)
+                                       keyEquivalent:@""];
 
         [lowItem setTarget:itemHandler];
         [mediumItem setTarget:itemHandler];
@@ -132,8 +160,8 @@ namespace TrayIconMac
 
         // Quit item
         NSMenuItem* quitItem = [[NSMenuItem alloc] initWithTitle:@"Quit Fader Keys"
-                                                        action:@selector(quitApp:)
-                                                 keyEquivalent:@""];
+                                                          action:@selector(quitApp:)
+                                                   keyEquivalent:@""];
         [quitItem setTarget:itemHandler];
         [menu addItem:quitItem];
 
@@ -144,6 +172,7 @@ namespace TrayIconMac
         [statusItem setHighlightMode:YES];
     }
 
+    // Destroys the status item (call at shutdown).
     void removeStatusBarIcon()
     {
         if (statusItem != nil)
@@ -155,15 +184,44 @@ namespace TrayIconMac
         lowItem = nil;
         mediumItem = nil;
         highItem = nil;
+        normalIcon = nil;
+        highlightedIcon = nil;
     }
 
-    void updateSensitivityMenu(FaderEngine::NudgeSensitivity sensitivity)
+    // Updates the menu title to reflect the current sensitivity state
+    void updateSensitivityMenu (FaderEngine::NudgeSensitivity sensitivity)
     {
         if (lowItem && mediumItem && highItem)
         {
             [lowItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Low ? NSOnState : NSOffState)];
             [mediumItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Medium ? NSOnState : NSOffState)];
             [highItem setState:(sensitivity == FaderEngine::NudgeSensitivity::High ? NSOnState : NSOffState)];
+        }
+    }
+
+    // Call this method whenever you detect Caps Lock turning on/off
+    void updateCapsLockState (bool capsLockOn)
+    {
+        if (statusItem == nil)
+        {
+            return;
+        }
+
+        if (capsLockOn)
+        {
+            // Show the "highlighted" icon
+            if (highlightedIcon != nil)
+            {
+                [statusItem setImage: highlightedIcon];
+            }
+        }
+        else
+        {
+            // Show the "normal" icon
+            if (normalIcon != nil)
+            {
+                [statusItem setImage: normalIcon];
+            }
         }
     }
 }

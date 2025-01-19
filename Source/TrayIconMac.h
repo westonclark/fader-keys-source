@@ -15,6 +15,9 @@ namespace TrayIconMac
 
     // Updates the menu title to reflect the current sensitivity state
     void updateSensitivityMenu(FaderEngine::NudgeSensitivity sensitivity);
+
+    // Updates the menu bar icon highlight state
+    void updateCapsLockState(bool capsLockOn);
 }
 
 #endif

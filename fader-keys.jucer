@@ -16,6 +16,8 @@
     </GROUP>
     <FILE id="H8IfrM" name="faders-icon-large.png" compile="0" resource="1"
           file="Resources/faders-icon-large.png"/>
+    <FILE id="ZIzLv6" name="faders-icon-small-highlighted.png" compile="0"
+          resource="1" file="Resources/faders-icon-small-highlighted.png"/>
     <FILE id="pLy7cM" name="faders-icon-small.png" compile="0" resource="1"
           file="Resources/faders-icon-small.png"/>
   </MAINGROUP>

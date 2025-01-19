@@ -10,6 +10,7 @@
 
 #include "GlobalKeyListener.h"
 #include "FaderEngine.h"
+#include "TrayIconMac.h"
 
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
@@ -21,12 +22,34 @@ namespace
     FaderEngine* globalKeyEngine = nullptr;
     std::unique_ptr<juce::Timer> retryTimer;
 
+    // validKeyCodes to block
+    const std::unordered_set<unsigned short> validKeyCodes =
+    {
+        0, 1, 2, 3, 5, 4, 38, 40, // a-k
+        12, 13, 14, 15, 17, 16, 32, 34, // q-i
+        18, 19  // 1-2
+    };
+
     CGEventRef eventTapCallback(CGEventTapProxy proxy,
                                 CGEventType type,
                                 CGEventRef event,
                                 void* userInfo)
     {
-        if ((type == kCGEventKeyDown || type == kCGEventKeyUp) && globalKeyEngine != nullptr)
+        if (type == kCGEventFlagsChanged)
+        {
+            // Read raw flags from the CGEventRef
+            static CGEventFlags lastFlags = 0;
+            CGEventFlags currentFlags = CGEventGetFlags(event);
+
+            // Check if Caps Lock was toggled
+            if ((currentFlags & kCGEventFlagMaskAlphaShift) != (lastFlags & kCGEventFlagMaskAlphaShift))
+            {
+                bool isCapsLockOn = ((currentFlags & kCGEventFlagMaskAlphaShift) != 0);
+                TrayIconMac::updateCapsLockState(isCapsLockOn);
+            }
+            lastFlags = currentFlags;
+        }
+        else if ((type == kCGEventKeyDown || type == kCGEventKeyUp) && globalKeyEngine != nullptr)
         {
             NSEvent* nsEvent = [NSEvent eventWithCGEvent:event];
             if (nsEvent != nil)
@@ -34,19 +57,13 @@ namespace
                 unsigned short keyCode = [nsEvent keyCode];
                 bool isKeyDown = (type == kCGEventKeyDown);
 
-                // Get caps lock state
-                NSUInteger flags = [NSEvent modifierFlags];
-                bool isCapsLockOn = ((flags & NSEventModifierFlagCapsLock) != 0);
+                // Check Caps Lock state again, in case there's a simultaneous toggling
+                CGEventFlags flags = CGEventGetFlags(event);
+                bool isCapsLockOn = ((flags & kCGEventFlagMaskAlphaShift) != 0);
+                TrayIconMac::updateCapsLockState(isCapsLockOn);
 
                 if (isCapsLockOn)
                 {
-                    // Valid keycodes
-                    static const std::unordered_set<unsigned short> validKeyCodes = {
-                        0, 1, 2, 3, 5, 4, 38, 40,  // a-k
-                        12, 13, 14, 15, 17, 16, 32, 34,  // q-i
-                        18, 19  // 1-2
-                    };
-
                     if (validKeyCodes.find(keyCode) != validKeyCodes.end())
                     {
                         juce::MessageManager::callAsync([=]()
@@ -59,6 +76,7 @@ namespace
                 }
             }
         }
+
         // If not swallowed, return event to let the OS proceed
         return event;
     }
@@ -71,7 +89,7 @@ namespace
 
         void timerCallback() override
         {
-            CGEventMask eventMask = (1 << kCGEventKeyDown) | (1 << kCGEventKeyUp);
+            CGEventMask eventMask = (1 << kCGEventKeyDown) | (1 << kCGEventKeyUp) | (1 << kCGEventFlagsChanged);
             auto newEventTap = CGEventTapCreate(kCGSessionEventTap,
                                                 kCGHeadInsertEventTap,
                                                 kCGEventTapOptionDefault,
@@ -85,13 +103,6 @@ namespace
                 runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
                 CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
                 CGEventTapEnable(eventTap, true);
-
-                // Re-hide the dock icon after permission is granted
-
-                // if (juce::Process::isDockIconVisible())
-                // {
-                //     juce::Process::setDockIconVisible(false);
-                // }
 
                 DBG("GlobalKeyListener successfully started after permission grant.");
                 retryTimer.reset();
@@ -107,7 +118,7 @@ void startGlobalKeyListener(FaderEngine* engine)
 
     globalKeyEngine = engine;
 
-    CGEventMask eventMask = (1 << kCGEventKeyDown) | (1 << kCGEventKeyUp);
+    CGEventMask eventMask = (1 << kCGEventKeyDown) | (1 << kCGEventKeyUp) | (1 << kCGEventFlagsChanged);
     eventTap = CGEventTapCreate(kCGSessionEventTap,
                                 kCGHeadInsertEventTap,
                                 kCGEventTapOptionDefault,
