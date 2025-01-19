@@ -40,7 +40,7 @@ void FaderEngine::closeMidiDevices()
 void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
                                             const juce::MidiMessage &message)
 {
-    // Pro Tools’s ping
+    // Pro Tools's ping
     if (message.isNoteOff() && message.getVelocity() == 0 && message.getNoteNumber() == 0)
     {
         if (midiOutput != nullptr)
@@ -172,65 +172,44 @@ void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown)
         break;
     }
 
-    switch (keyCode)
+    // Use a static lookup table for fast key mapping
+    static const struct
     {
-    case 0: // 'a'
-        nudgeFader(0, -nudgeAmount);
-        break;
-    case 1: // 's'
-        nudgeFader(1, -nudgeAmount);
-        break;
-    case 2: // 'd'
-        nudgeFader(2, -nudgeAmount);
-        break;
-    case 3: // 'f'
-        nudgeFader(3, -nudgeAmount);
-        break;
-    case 5: // 'g'
-        nudgeFader(4, -nudgeAmount);
-        break;
-    case 4: // 'h'
-        nudgeFader(5, -nudgeAmount);
-        break;
-    case 38: // 'j'
-        nudgeFader(6, -nudgeAmount);
-        break;
-    case 40: // 'k'
-        nudgeFader(7, -nudgeAmount);
-        break;
+        int keyCode;
+        int faderIndex;
+        bool isPositive;
+    } keyMap[] = {
+        {12, 0, true},  // 'q' - fader 0 up
+        {0, 0, false},  // 'a' - fader 0 down
+        {13, 1, true},  // 'w' - fader 1 up
+        {1, 1, false},  // 's' - fader 1 down
+        {14, 2, true},  // 'e' - fader 2 up
+        {2, 2, false},  // 'd' - fader 2 down
+        {15, 3, true},  // 'r' - fader 3 up
+        {3, 3, false},  // 'f' - fader 3 down
+        {17, 4, true},  // 't' - fader 4 up
+        {5, 4, false},  // 'g' - fader 4 down
+        {16, 5, true},  // 'y' - fader 5 up
+        {4, 5, false},  // 'h' - fader 5 down
+        {32, 6, true},  // 'u' - fader 6 up
+        {38, 6, false}, // 'j' - fader 6 down
+        {34, 7, true},  // 'i' - fader 7 up
+        {40, 7, false}, // 'k' - fader 7 down
+    };
 
-    case 12: // 'q'
-        nudgeFader(0, nudgeAmount);
-        break;
-    case 13: // 'w'
-        nudgeFader(1, nudgeAmount);
-        break;
-    case 14: // 'e'
-        nudgeFader(2, nudgeAmount);
-        break;
-    case 15: // 'r'
-        nudgeFader(3, nudgeAmount);
-        break;
-    case 17: // 't'
-        nudgeFader(4, nudgeAmount);
-        break;
-    case 16: // 'y'
-        nudgeFader(5, nudgeAmount);
-        break;
-    case 32: // 'u'
-        nudgeFader(6, nudgeAmount);
-        break;
-    case 34: // 'i'
-        nudgeFader(7, nudgeAmount);
-        break;
-
-    case 18: // '1'
-        nudgeBankLeft();
-        break;
-    case 19: // '2'
-        nudgeBankRight();
-        break;
-    default:
-        break;
+    // Look up the action
+    for (const auto &mapping : keyMap)
+    {
+        if (mapping.keyCode == keyCode)
+        {
+            nudgeFader(mapping.faderIndex, mapping.isPositive ? nudgeAmount : -nudgeAmount);
+            return;
+        }
     }
+
+    // Bank switching
+    if (keyCode == 18) // '1' key
+        nudgeBankLeft();
+    else if (keyCode == 19) // '2' key
+        nudgeBankRight();
 }

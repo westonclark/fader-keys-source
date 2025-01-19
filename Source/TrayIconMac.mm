@@ -151,6 +151,11 @@ namespace TrayIconMac
         [mediumItem setTarget:itemHandler];
         [highItem setTarget:itemHandler];
 
+        // Initial state - set before attaching menu
+        [lowItem setState:NSOffState];
+        [mediumItem setState:NSOnState];  // Set medium as checked by default
+        [highItem setState:NSOffState];
+
         [menu addItem:lowItem];
         [menu addItem:mediumItem];
         [menu addItem:highItem];
@@ -165,9 +170,7 @@ namespace TrayIconMac
         [quitItem setTarget:itemHandler];
         [menu addItem:quitItem];
 
-        // Initial state
-        updateSensitivityMenu(engine->getNudgeSensitivity());
-
+        // Attach menu and set highlight mode
         [statusItem setMenu:menu];
         [statusItem setHighlightMode:YES];
     }
@@ -193,9 +196,17 @@ namespace TrayIconMac
     {
         if (lowItem && mediumItem && highItem)
         {
-            [lowItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Low ? NSOnState : NSOffState)];
-            [mediumItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Medium ? NSOnState : NSOffState)];
-            [highItem setState:(sensitivity == FaderEngine::NudgeSensitivity::High ? NSOnState : NSOffState)];
+            // Cache the current state to avoid unnecessary updates
+            static FaderEngine::NudgeSensitivity lastSensitivity =
+                FaderEngine::NudgeSensitivity::Medium;
+
+            if (sensitivity != lastSensitivity)
+            {
+                [lowItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Low ? NSOnState : NSOffState)];
+                [mediumItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Medium ? NSOnState : NSOffState)];
+                [highItem setState:(sensitivity == FaderEngine::NudgeSensitivity::High ? NSOnState : NSOffState)];
+                lastSensitivity = sensitivity;
+            }
         }
     }
 
