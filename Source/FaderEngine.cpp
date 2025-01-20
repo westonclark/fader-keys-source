@@ -1,15 +1,68 @@
 #include "FaderEngine.h"
 
+namespace
+{
+    // Define movement amounts for different sensitivity levels
+    static const std::array<std::pair<int, int>, 3> NUDGE_VALUES{{
+        // Up, Down
+        {240, 160}, // Low - Approx 0.5dB movement
+        {384, 320}, // Medium - Approx 1.0dB movement
+        {704, 640}  // High - Approx 2.0dB movement
+    }};
+
+    struct KeyMapping
+    {
+        int keyCode;
+        int faderIndex;
+        bool isUpward;
+    };
+
+    // Mapping Global Keycodes to Faders
+    static const std::array<KeyMapping, 16> KEY_FADER_MAP{{
+        // KeyCode, FaderIndex, IsUpward
+        // Fader 1 controls
+        {12, 0, true}, // Q - Fader 1 Up
+        {0, 0, false}, // A - Fader 1 Down
+        // Fader 2 controls
+        {13, 1, true}, // W - Fader 2 Up
+        {1, 1, false}, // S - Fader 2 Down
+        // Fader 3 controls
+        {14, 2, true}, // E - Fader 3 Up
+        {2, 2, false}, // D - Fader 3 Down
+        // Fader 4 controls
+        {15, 3, true}, // R - Fader 4 Up
+        {3, 3, false}, // F - Fader 4 Down
+        // Fader 5 controls
+        {17, 4, true}, // T - Fader 5 Up
+        {5, 4, false}, // G - Fader 5 Down
+        // Fader 6 controls
+        {16, 5, true}, // Y - Fader 6 Up
+        {4, 5, false}, // H - Fader 6 Down
+        // Fader 7 controls
+        {32, 6, true},  // U - Fader 7 Up
+        {38, 6, false}, // J - Fader 7 Down
+        // Fader 8 controls
+        {34, 7, true},  // I - Fader 8 Up
+        {40, 7, false}, // K - Fader 8 Down
+    }};
+}
+
+// CONSTRUCTOR
+//==============================================================================
 FaderEngine::FaderEngine()
 {
     setupMidiDevices();
 }
 
+// DESTRUCTOR
+//==============================================================================
 FaderEngine::~FaderEngine()
 {
     closeMidiDevices();
 }
 
+// MIDI DEVICE SETUP/TEARDOWN
+//==============================================================================
 void FaderEngine::setupMidiDevices()
 {
     midiOutput = juce::MidiOutput::createNewDevice("Fader Keys MIDI Output");
@@ -37,6 +90,8 @@ void FaderEngine::closeMidiDevices()
     midiOutput.reset();
 }
 
+// INCOMING MIDI MESSAGE HANDLING
+//==============================================================================
 void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
                                             const juce::MidiMessage &message)
 {
@@ -53,9 +108,6 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
     {
         int controllerNumber = message.getControllerNumber();
         int value = message.getControllerValue();
-
-        // DBG("Received MIDI CC - Controller: " << controllerNumber
-        //                                       << " Value: " << value);
 
         // HUI uses CC 0-7 for MSB and 32-39 for LSB
         for (int i = 0; i < numFaders; ++i)
@@ -76,30 +128,42 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
                 int newValue = (msb << 7) | lsb;
                 faderValues[i] = newValue;
 
-                // Log the complete fader value after update
-                // DBG("Fader " << i << " updated - MSB: " << msb
-                //              << " LSB: " << lsb
-                //              << " Complete Value: " << newValue
-                //              << " (0x" << juce::String::toHexString(newValue) << ")");
-
                 break;
             }
         }
     }
 }
 
-void FaderEngine::nudgeFader(int faderIndex, int delta)
+// GLOBAL KEYCODE HANDLING
+//==============================================================================
+void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown)
 {
-    int newValue = faderValues[faderIndex] + delta;
-    newValue = juce::jlimit(0, 16383, newValue);
+    if (!isKeyDown)
+        return;
 
-    faderValues[faderIndex] = newValue;
+    if (handleBankSwitching(keyCode))
+        return;
 
-    sendFaderMove(faderIndex, newValue);
+    // Get movement amounts for current sensitivity
+    const auto &nudgeAmounts = NUDGE_VALUES[static_cast<int>(sensitivity)];
+
+    // Look for matching fader control
+    for (const auto &mapping : KEY_FADER_MAP)
+    {
+        if (mapping.keyCode == keyCode)
+        {
+            const int delta = mapping.isUpward ? nudgeAmounts.first : -nudgeAmounts.second;
+            nudgeFader(mapping.faderIndex, delta);
+            return;
+        }
+    }
 }
 
-void FaderEngine::sendFaderMove(int faderIndex, int value)
+// FADER MOVEMENT
+//==============================================================================
+void FaderEngine::nudgeFader(int faderIndex, int delta)
 {
+    // Validate fader index and MIDI output
     if (faderIndex < 0 || faderIndex >= numFaders || midiOutput == nullptr)
     {
         DBG("Invalid fader move: index=" << faderIndex
@@ -107,29 +171,79 @@ void FaderEngine::sendFaderMove(int faderIndex, int value)
         return;
     }
 
-    int lsb = value & 0x7F;
-    int msb = (value >> 7) & 0x7F;
+    // Calculate new value and limit to valid range (0-16383)
+    int newValue = faderValues[faderIndex] + delta;
+    newValue = juce::jlimit(0, 16383, newValue);
 
-    uint8_t touchData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};
-    uint8_t touchData2[3] = {0xB0, 0x2F, 0x40};
-    uint8_t msbData[3] = {0xB0, (uint8_t)faderIndex, (uint8_t)msb};
-    uint8_t lsbData[3] = {0xB0, (uint8_t)(0x20 | faderIndex), (uint8_t)lsb};
-    uint8_t releaseData1[3] = {0xB0, 0x0F, (uint8_t)faderIndex};
-    uint8_t releaseData2[3] = {0xB0, 0x2F, 0x00};
-    // Touch message
-    midiOutput->sendMessageNow(juce::MidiMessage(touchData1, 3));
-    midiOutput->sendMessageNow(juce::MidiMessage(touchData2, 3));
+    // Store the new value
+    faderValues[faderIndex] = newValue;
 
-    // Move message
-    midiOutput->sendMessageNow(juce::MidiMessage(msbData, 3));
-    midiOutput->sendMessageNow(juce::MidiMessage(lsbData, 3));
+    // Create fader move messages
+    const auto messages = createFaderMoveMessages(faderIndex, newValue);
 
-    // Release message
-    midiOutput->sendMessageNow(juce::MidiMessage(releaseData1, 3));
-    midiOutput->sendMessageNow(juce::MidiMessage(releaseData2, 3));
+    // Send each message immediately
+    for (const auto &msg : messages)
+    {
+        midiOutput->sendMessageNow(msg);
+    }
 }
 
+std::vector<juce::MidiMessage> FaderEngine::createFaderMoveMessages(int faderIndex, int value) const
+{
+    // Split 14-bit value into MSB and LSB (7 bits each)
+    const int msb = (value >> 7) & 0x7F; // Most significant 7 bits
+    const int lsb = value & 0x7F;        // Least significant 7 bits
+
+    const std::array<std::pair<uint8_t, uint8_t>, 6> controls{{
+        // Touch sequence
+        {0x0F, static_cast<uint8_t>(faderIndex)}, // Select fader
+        {0x2F, 0x40},                             // Apply touch pressure
+
+        // Fader position
+        {static_cast<uint8_t>(faderIndex), static_cast<uint8_t>(msb)},        // Set coarse position (MSB)
+        {static_cast<uint8_t>(0x20 | faderIndex), static_cast<uint8_t>(lsb)}, // Set fine position (LSB)
+
+        // Release sequence
+        {0x0F, static_cast<uint8_t>(faderIndex)}, // Select fader again
+        {0x2F, 0x00}                              // Remove pressure
+    }};
+
+    // Create MIDI messages from our control sequence
+    std::vector<juce::MidiMessage> messages;
+    messages.reserve(controls.size());
+
+    // All messages are sent on MIDI channel 1 (HUI protocol requirement)
+    static const int MIDI_CHANNEL = 1;
+
+    for (const auto &[control, value] : controls)
+    {
+        messages.emplace_back(
+            juce::MidiMessage::controllerEvent(
+                MIDI_CHANNEL,
+                control,
+                value));
+    }
+
+    return messages;
+}
+
+// BANK SWITCHING
 //==============================================================================
+bool FaderEngine::handleBankSwitching(int keyCode)
+{
+    switch (keyCode)
+    {
+    case 18: // '1' key
+        nudgeBankLeft();
+        return true;
+    case 19: // '2' key
+        nudgeBankRight();
+        return true;
+    default:
+        return false;
+    }
+}
+
 void FaderEngine::nudgeBankLeft()
 {
     if (midiOutput != nullptr)
@@ -156,82 +270,4 @@ void FaderEngine::nudgeBankRight()
         midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
         midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
     }
-}
-
-void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown)
-{
-    if (!isKeyDown)
-        return;
-
-    // Values calibrated for ~0.5dB, ~1dB, and ~2dB movements
-    // With slight boost to up movements to compensate
-    static const struct
-    {
-        int up;
-        int down;
-    } NUDGE_VALUES[] = {
-        {240, 160}, // Low - about 0.5dB (half of medium) + 64 boost up
-        {384, 320}, // Medium - about 1dB + 32 boost up
-        {704, 640}  // High - about 2dB (unchanged)
-    };
-
-    int nudgeUp, nudgeDown;
-    switch (sensitivity)
-    {
-    case NudgeSensitivity::Low:
-        nudgeUp = NUDGE_VALUES[0].up;
-        nudgeDown = NUDGE_VALUES[0].down;
-        break;
-    case NudgeSensitivity::High:
-        nudgeUp = NUDGE_VALUES[2].up;
-        nudgeDown = NUDGE_VALUES[2].down;
-        break;
-    default:
-        nudgeUp = NUDGE_VALUES[1].up;
-        nudgeDown = NUDGE_VALUES[1].down;
-        break;
-    }
-
-    // Use a static lookup table for fast key mapping
-    static const struct
-    {
-        int keyCode;
-        int faderIndex;
-        bool isPositive;
-    } keyMap[] = {
-        {12, 0, true},  // 'q' - fader 0 up
-        {0, 0, false},  // 'a' - fader 0 down
-        {13, 1, true},  // 'w' - fader 1 up
-        {1, 1, false},  // 's' - fader 1 down
-        {14, 2, true},  // 'e' - fader 2 up
-        {2, 2, false},  // 'd' - fader 2 down
-        {15, 3, true},  // 'r' - fader 3 up
-        {3, 3, false},  // 'f' - fader 3 down
-        {17, 4, true},  // 't' - fader 4 up
-        {5, 4, false},  // 'g' - fader 4 down
-        {16, 5, true},  // 'y' - fader 5 up
-        {4, 5, false},  // 'h' - fader 5 down
-        {32, 6, true},  // 'u' - fader 6 up
-        {38, 6, false}, // 'j' - fader 6 down
-        {34, 7, true},  // 'i' - fader 7 up
-        {40, 7, false}, // 'k' - fader 7 down
-    };
-
-    // Look up the action
-    for (const auto &mapping : keyMap)
-    {
-        if (mapping.keyCode == keyCode)
-        {
-            // Use different values for up vs down
-            int nudgeAmount = mapping.isPositive ? nudgeUp : -nudgeDown;
-            nudgeFader(mapping.faderIndex, nudgeAmount);
-            return;
-        }
-    }
-
-    // Bank switching
-    if (keyCode == 18) // '1' key
-        nudgeBankLeft();
-    else if (keyCode == 19) // '2' key
-        nudgeBankRight();
 }

@@ -3,6 +3,11 @@
 #include <JuceHeader.h>
 #include <array>
 
+/**
+ * FaderEngine handles all MIDI communication and fader control logic.
+ * It implements the HUI protocol for communicating with DAWs and manages
+ * the state of 8 virtual faders.
+ */
 class FaderEngine : public juce::MidiInputCallback
 {
 public:
@@ -25,6 +30,12 @@ public:
     void handleGlobalKeycode(int keyCode, bool isKeyDown);
 
 private:
+    /** Creates MIDI messages for fader movement following HUI protocol */
+    std::vector<juce::MidiMessage> createFaderMoveMessages(int faderIndex, int value) const;
+
+    /** Handles bank switching commands */
+    bool handleBankSwitching(int keyCode);
+
     // MIDI devices
     void setupMidiDevices();
     void closeMidiDevices();
