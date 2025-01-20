@@ -16,8 +16,6 @@
     </GROUP>
     <FILE id="H8IfrM" name="faders-icon-large.png" compile="0" resource="1"
           file="Resources/faders-icon-large.png"/>
-    <FILE id="ZIzLv6" name="faders-icon-small-highlighted.png" compile="0"
-          resource="1" file="Resources/faders-icon-small-highlighted.png"/>
     <FILE id="pLy7cM" name="faders-icon-small.png" compile="0" resource="1"
           file="Resources/faders-icon-small.png"/>
   </MAINGROUP>
@@ -40,7 +38,8 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs=" JUCE_MAC=1" customPList="&lt;plist&gt;&#10;  &lt;dict&gt;&#10;    &lt;key&gt;LSUIElement&lt;/key&gt;&#10;    &lt;string&gt;1&lt;/string&gt;&#10;  &lt;/dict&gt;&#10;&lt;/plist&gt;"
                bigIcon="H8IfrM" smallIcon="pLy7cM">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="fader-keys"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="fader-keys" macOSDeploymentTarget="10.14"
+                       osxCompatibility="10.14 SDK"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="Fader Keys"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

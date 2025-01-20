@@ -81,6 +81,9 @@ namespace TrayIconMac
     static NSImage* normalIcon = nil;
     static NSImage* highlightedIcon = nil;
 
+    // Add new static property for the button
+    static NSStatusBarButton* statusButton = nil;
+
     // Creates the NSStatusItem, attaches a native macOS menu.
     void createStatusBarIcon (FaderEngine* engine)
     {
@@ -91,7 +94,9 @@ namespace TrayIconMac
         statusItem = [[NSStatusBar systemStatusBar]
                         statusItemWithLength:NSVariableStatusItemLength];
 
-        // Load the normal icon
+        // Get the button from the status item
+        statusButton = [statusItem button];
+
         if (auto* imageData = BinaryData::fadersiconsmall_png)
         {
             NSData* data = [NSData dataWithBytes:imageData length:BinaryData::fadersiconsmall_pngSize];
@@ -99,24 +104,10 @@ namespace TrayIconMac
 
             if (normalIcon != nil)
             {
-                // Don't set as template if you want to preserve colors
-                [normalIcon setTemplate:NO];
+                [normalIcon setTemplate:NO];  // Allows background coloring
+
                 [normalIcon setSize:NSMakeSize(24, 24)];
-                [statusItem setImage:normalIcon];
-            }
-        }
-
-        // Load the highlighted icon
-        if (auto* highlightData = BinaryData::fadersiconsmallhighlighted_png)
-        {
-            NSData* data = [NSData dataWithBytes:highlightData length:BinaryData::fadersiconsmallhighlighted_pngSize];
-            highlightedIcon = [[NSImage alloc] initWithData:data];
-
-            if (highlightedIcon != nil)
-            {
-                // Don't set as template for the highlighted version either
-                [highlightedIcon setTemplate:NO];
-                [highlightedIcon setSize:NSMakeSize(24, 24)];
+                [statusButton setImage:normalIcon];
             }
         }
 
@@ -152,9 +143,9 @@ namespace TrayIconMac
         [highItem setTarget:itemHandler];
 
         // Initial state - set before attaching menu
-        [lowItem setState:NSOffState];
-        [mediumItem setState:NSOnState];  // Set medium as checked by default
-        [highItem setState:NSOffState];
+        [lowItem setState:NSControlStateValueOff];
+        [mediumItem setState:NSControlStateValueOn];  // Set medium as checked by default
+        [highItem setState:NSControlStateValueOff];
 
         [menu addItem:lowItem];
         [menu addItem:mediumItem];
@@ -172,7 +163,7 @@ namespace TrayIconMac
 
         // Attach menu and set highlight mode
         [statusItem setMenu:menu];
-        [statusItem setHighlightMode:YES];
+        [[statusItem button] cell].highlighted = (NSChangeBackgroundCellMask | NSContentsCellMask);
     }
 
     // Destroys the status item (call at shutdown).
@@ -202,37 +193,32 @@ namespace TrayIconMac
 
             if (sensitivity != lastSensitivity)
             {
-                [lowItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Low ? NSOnState : NSOffState)];
-                [mediumItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Medium ? NSOnState : NSOffState)];
-                [highItem setState:(sensitivity == FaderEngine::NudgeSensitivity::High ? NSOnState : NSOffState)];
+                [lowItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Low ? NSControlStateValueOn : NSControlStateValueOff)];
+                [mediumItem setState:(sensitivity == FaderEngine::NudgeSensitivity::Medium ? NSControlStateValueOn : NSControlStateValueOff)];
+                [highItem setState:(sensitivity == FaderEngine::NudgeSensitivity::High ? NSControlStateValueOn : NSControlStateValueOff)];
                 lastSensitivity = sensitivity;
             }
         }
     }
 
-    // Call this method whenever you detect Caps Lock turning on/off
     void updateCapsLockState (bool capsLockOn)
     {
-        if (statusItem == nil)
-        {
+        if (statusItem == nil || statusButton == nil)
             return;
-        }
 
         if (capsLockOn)
         {
-            // Show the "highlighted" icon
-            if (highlightedIcon != nil)
-            {
-                [statusItem setImage: highlightedIcon];
-            }
+            // Color the whole background using system red color
+            [statusButton setContentTintColor:nil];  // Reset tint
+            statusButton.wantsLayer = YES;           // Enable layer backing
+            statusButton.layer.backgroundColor = [NSColor systemRedColor].CGColor;
+            statusButton.layer.cornerRadius = 4;     // Round the corners
         }
         else
         {
-            // Show the "normal" icon
-            if (normalIcon != nil)
-            {
-                [statusItem setImage: normalIcon];
-            }
+            // Reset to normal state
+            statusButton.layer.backgroundColor = nil;
+            [statusButton setContentTintColor:nil];
         }
     }
 }
