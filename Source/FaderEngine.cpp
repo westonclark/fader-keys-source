@@ -54,6 +54,9 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
         int controllerNumber = message.getControllerNumber();
         int value = message.getControllerValue();
 
+        // DBG("Received MIDI CC - Controller: " << controllerNumber
+        //                                       << " Value: " << value);
+
         // HUI uses CC 0-7 for MSB and 32-39 for LSB
         for (int i = 0; i < numFaders; ++i)
         {
@@ -72,6 +75,12 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
 
                 int newValue = (msb << 7) | lsb;
                 faderValues[i] = newValue;
+
+                // Log the complete fader value after update
+                // DBG("Fader " << i << " updated - MSB: " << msb
+                //              << " LSB: " << lsb
+                //              << " Complete Value: " << newValue
+                //              << " (0x" << juce::String::toHexString(newValue) << ")");
 
                 break;
             }
@@ -154,21 +163,32 @@ void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown)
     if (!isKeyDown)
         return;
 
-    static const int LOW_NUDGE = 146;
-    static const int MEDIUM_NUDGE = 291;
-    static const int HIGH_NUDGE = 582;
+    // Values calibrated for ~0.5dB, ~1dB, and ~2dB movements
+    // With slight boost to up movements to compensate
+    static const struct
+    {
+        int up;
+        int down;
+    } NUDGE_VALUES[] = {
+        {240, 160}, // Low - about 0.5dB (half of medium) + 64 boost up
+        {384, 320}, // Medium - about 1dB + 32 boost up
+        {704, 640}  // High - about 2dB (unchanged)
+    };
 
-    int nudgeAmount;
+    int nudgeUp, nudgeDown;
     switch (sensitivity)
     {
     case NudgeSensitivity::Low:
-        nudgeAmount = LOW_NUDGE;
+        nudgeUp = NUDGE_VALUES[0].up;
+        nudgeDown = NUDGE_VALUES[0].down;
         break;
     case NudgeSensitivity::High:
-        nudgeAmount = HIGH_NUDGE;
+        nudgeUp = NUDGE_VALUES[2].up;
+        nudgeDown = NUDGE_VALUES[2].down;
         break;
     default:
-        nudgeAmount = MEDIUM_NUDGE;
+        nudgeUp = NUDGE_VALUES[1].up;
+        nudgeDown = NUDGE_VALUES[1].down;
         break;
     }
 
@@ -202,7 +222,9 @@ void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown)
     {
         if (mapping.keyCode == keyCode)
         {
-            nudgeFader(mapping.faderIndex, mapping.isPositive ? nudgeAmount : -nudgeAmount);
+            // Use different values for up vs down
+            int nudgeAmount = mapping.isPositive ? nudgeUp : -nudgeDown;
+            nudgeFader(mapping.faderIndex, nudgeAmount);
             return;
         }
     }
