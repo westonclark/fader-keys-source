@@ -33,6 +33,9 @@ private:
     /** Creates MIDI messages for fader movement following HUI protocol */
     std::vector<juce::MidiMessage> createFaderMoveMessages(int faderIndex, int value) const;
 
+    /** Creates pitch wheel message for Logic Pro compatibility */
+    juce::MidiMessage createPitchWheelMessage(int faderIndex, int value) const;
+
     /** Handles bank switching commands */
     bool handleBankSwitching(int keyCode);
 

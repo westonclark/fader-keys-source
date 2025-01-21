@@ -103,7 +103,7 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
         return;
     }
 
-    // HUI Messages
+    // Handle both HUI and pitch wheel messages
     if (message.isController())
     {
         int controllerNumber = message.getControllerNumber();
@@ -130,6 +130,15 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
 
                 break;
             }
+        }
+    }
+    else if (message.isPitchWheel())
+    {
+        // Store pitch wheel values for Logic Pro mode
+        int channel = message.getChannel();
+        if (channel >= 1 && channel <= numFaders)
+        {
+            faderValues[channel - 1] = message.getPitchWheelValue();
         }
     }
 }
@@ -178,14 +187,16 @@ void FaderEngine::nudgeFader(int faderIndex, int delta)
     // Store the new value
     faderValues[faderIndex] = newValue;
 
-    // Create fader move messages
-    const auto messages = createFaderMoveMessages(faderIndex, newValue);
+    // Send both HUI and pitch wheel messages
+    const auto huiMessages = createFaderMoveMessages(faderIndex, newValue);
+    const auto pitchWheelMessage = createPitchWheelMessage(faderIndex, newValue);
 
-    // Send each message immediately
-    for (const auto &msg : messages)
+    // Send all messages
+    for (const auto &msg : huiMessages)
     {
         midiOutput->sendMessageNow(msg);
     }
+    midiOutput->sendMessageNow(pitchWheelMessage);
 }
 
 std::vector<juce::MidiMessage> FaderEngine::createFaderMoveMessages(int faderIndex, int value) const
@@ -227,6 +238,13 @@ std::vector<juce::MidiMessage> FaderEngine::createFaderMoveMessages(int faderInd
     return messages;
 }
 
+juce::MidiMessage FaderEngine::createPitchWheelMessage(int faderIndex, int value) const
+{
+    // Pitch wheel messages use channels 1-8 for faders 1-8
+    const int midiChannel = faderIndex + 1;
+    return juce::MidiMessage::pitchWheel(midiChannel, value);
+}
+
 // BANK SWITCHING
 //==============================================================================
 bool FaderEngine::handleBankSwitching(int keyCode)
@@ -246,28 +264,38 @@ bool FaderEngine::handleBankSwitching(int keyCode)
 
 void FaderEngine::nudgeBankLeft()
 {
-    if (midiOutput != nullptr)
-    {
-        uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
-        uint8_t buttonPress[3] = {0xB0, 0x2F, 0x40};
-        uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x00};
+    if (midiOutput == nullptr)
+        return;
 
-        midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
-        midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
-        midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
-    }
+    // For Logic: Send C2 (58) note on/off for single track left
+    midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 48, (uint8_t)127));
+    midiOutput->sendMessageNow(juce::MidiMessage::noteOff(1, 48));
+
+    // Keep HUI Protocol messages for Pro Tools
+    uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
+    uint8_t buttonPress[3] = {0xB0, 0x2F, 0x40};
+    uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x00};
+
+    midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
 }
 
 void FaderEngine::nudgeBankRight()
 {
-    if (midiOutput != nullptr)
-    {
-        uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
-        uint8_t buttonPress[3] = {0xB0, 0x2F, 0x42};
-        uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x02};
+    if (midiOutput == nullptr)
+        return;
 
-        midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
-        midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
-        midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
-    }
+    // For Logic: Send C#2 (49) note on/off for single track right
+    midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 49, (uint8_t)127));
+    midiOutput->sendMessageNow(juce::MidiMessage::noteOff(1, 49));
+
+    // Keep HUI Protocol messages for Pro Tools
+    uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
+    uint8_t buttonPress[3] = {0xB0, 0x2F, 0x42};
+    uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x02};
+
+    midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
 }
