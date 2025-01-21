@@ -97,9 +97,9 @@ namespace TrayIconMac
         // Get the button from the status item
         statusButton = [statusItem button];
 
-        if (auto* imageData = BinaryData::fadersiconsmall_png)
+        if (auto* imageData = BinaryData::sliderssmall_png)
         {
-            NSData* data = [NSData dataWithBytes:imageData length:BinaryData::fadersiconsmall_pngSize];
+            NSData* data = [NSData dataWithBytes:imageData length:BinaryData::sliderssmall_pngSize];
             normalIcon = [[NSImage alloc] initWithData:data];
 
             if (normalIcon != nil)

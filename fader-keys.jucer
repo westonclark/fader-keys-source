@@ -15,10 +15,10 @@
       <FILE id="wkKYgJ" name="TrayIconMac.mm" compile="1" resource="0" file="Source/TrayIconMac.mm"/>
       <FILE id="HA35lF" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
-    <FILE id="H8IfrM" name="faders-icon-large.png" compile="0" resource="1"
-          file="Resources/faders-icon-large.png"/>
-    <FILE id="pLy7cM" name="faders-icon-small.png" compile="0" resource="1"
-          file="Resources/faders-icon-small.png"/>
+    <FILE id="SvTf8H" name="sliders-large.png" compile="0" resource="1"
+          file="Resources/sliders-large.png"/>
+    <FILE id="ENaQUk" name="sliders-small.png" compile="0" resource="1"
+          file="Resources/sliders-small.png"/>
   </MAINGROUP>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -37,7 +37,7 @@
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs=" JUCE_MAC=1" customPList="&lt;plist&gt;&#10;  &lt;dict&gt;&#10;    &lt;key&gt;LSUIElement&lt;/key&gt;&#10;    &lt;string&gt;1&lt;/string&gt;&#10;    &lt;key&gt;NSAppleEventsUsageDescription&lt;/key&gt;&#10;    &lt;string&gt;This app needs to monitor keyboard events to function.&lt;/string&gt;&#10;    &lt;key&gt;Privacy - Accessibility Usage Description&lt;/key&gt;&#10;    &lt;string&gt;This app needs accessibility permissions to monitor keyboard events.&lt;/string&gt;&#10;  &lt;/dict&gt;&#10;&lt;/plist&gt;"
-               bigIcon="H8IfrM" smallIcon="pLy7cM" bundleIdentifier="com.westonclarkmixing.faderkeys"
+               bigIcon="SvTf8H" smallIcon="ENaQUk" bundleIdentifier="com.westonclarkmixing.faderkeys"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.automation.apple-events,com.apple.security.temporary-exception.apple-events">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="fader-keys" macOSDeploymentTarget="10.14"
