@@ -2,7 +2,7 @@
 
 namespace
 {
-    // Define movement amounts for different sensitivity levels
+    // Nudge amounts for sensitivity levels
     static const std::array<std::pair<int, int>, 3> NUDGE_VALUES{{
         // Up, Down
         {240, 160}, // Low - Approx 0.5dB movement
@@ -17,7 +17,7 @@ namespace
         bool isUpward;
     };
 
-    // Mapping Global Keycodes to Faders
+    // Global keycode to fader mapping
     static const std::array<KeyMapping, 16> KEY_FADER_MAP{{
         // KeyCode, FaderIndex, IsUpward
         // Fader 1 controls
@@ -47,21 +47,19 @@ namespace
     }};
 }
 
-// CONSTRUCTOR
+// CONSTRUCTOR / DESTRUCTOR
 //==============================================================================
 FaderEngine::FaderEngine()
 {
     setupMidiDevices();
 }
 
-// DESTRUCTOR
-//==============================================================================
 FaderEngine::~FaderEngine()
 {
     closeMidiDevices();
 }
 
-// MIDI DEVICE SETUP/TEARDOWN
+// MIDI DEVICE SETUP / TEARDOWN
 //==============================================================================
 void FaderEngine::setupMidiDevices()
 {
@@ -103,7 +101,7 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
         return;
     }
 
-    // Handle both HUI and pitch wheel messages
+    // Pro Tools HUI messages
     if (message.isController())
     {
         int controllerNumber = message.getControllerNumber();
@@ -132,9 +130,10 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
             }
         }
     }
+
+    // Logic pitch wheel messages
     else if (message.isPitchWheel())
     {
-        // Store pitch wheel values for Logic Pro mode
         int channel = message.getChannel();
         if (channel >= 1 && channel <= numFaders)
         {
@@ -187,11 +186,10 @@ void FaderEngine::nudgeFader(int faderIndex, int delta)
     // Store the new value
     faderValues[faderIndex] = newValue;
 
-    // Send both HUI and pitch wheel messages
     const auto huiMessages = createFaderMoveMessages(faderIndex, newValue);
     const auto pitchWheelMessage = createPitchWheelMessage(faderIndex, newValue);
 
-    // Send all messages
+    // Send both HUI and pitch wheel messages
     for (const auto &msg : huiMessages)
     {
         midiOutput->sendMessageNow(msg);
@@ -223,14 +221,11 @@ std::vector<juce::MidiMessage> FaderEngine::createFaderMoveMessages(int faderInd
     std::vector<juce::MidiMessage> messages;
     messages.reserve(controls.size());
 
-    // All messages are sent on MIDI channel 1 (HUI protocol requirement)
-    static const int MIDI_CHANNEL = 1;
-
     for (const auto &[control, value] : controls)
     {
         messages.emplace_back(
             juce::MidiMessage::controllerEvent(
-                MIDI_CHANNEL,
+                1, // HUI protocol requires channel 1
                 control,
                 value));
     }
@@ -267,11 +262,11 @@ void FaderEngine::nudgeBankLeft()
     if (midiOutput == nullptr)
         return;
 
-    // For Logic: Send C2 (58) note on/off for single track left
+    // Logic: Send C2 (58) note on/off for single track left
     midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 48, (uint8_t)127));
     midiOutput->sendMessageNow(juce::MidiMessage::noteOff(1, 48));
 
-    // Keep HUI Protocol messages for Pro Tools
+    // Pro Tools: Zone select, button press, button release
     uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
     uint8_t buttonPress[3] = {0xB0, 0x2F, 0x40};
     uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x00};
@@ -286,11 +281,11 @@ void FaderEngine::nudgeBankRight()
     if (midiOutput == nullptr)
         return;
 
-    // For Logic: Send C#2 (49) note on/off for single track right
+    // Logic: Send C#2 (49) note on/off for single track right
     midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 49, (uint8_t)127));
     midiOutput->sendMessageNow(juce::MidiMessage::noteOff(1, 49));
 
-    // Keep HUI Protocol messages for Pro Tools
+    // Pro Tools: Zone select, button press, button release
     uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
     uint8_t buttonPress[3] = {0xB0, 0x2F, 0x42};
     uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x02};

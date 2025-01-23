@@ -10,11 +10,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-// Forward declare fader engine class so we don't have circular includes
 class FaderEngine;
 
-// Called to start/stop capturing keys globally:
+// Start/stop global key listener
 void startGlobalKeyListener(FaderEngine *engine);
 void stopGlobalKeyListener();

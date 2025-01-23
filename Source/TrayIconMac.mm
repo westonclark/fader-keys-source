@@ -4,12 +4,6 @@
 #include "TrayIconMac.h"
 #include "FaderEngine.h"
 
-// Forward declaration so we can update the icon after creation
-namespace TrayIconMac
-{
-    void updateCapsLockState (bool capsLockOn);
-}
-
 // A simple Objective‐C helper "handler" that can forward clicks to C++:
 @interface StatusItemHandler : NSObject
 {
@@ -70,14 +64,14 @@ namespace TrayIconMac
 
 namespace TrayIconMac
 {
-    // We keep a static reference to our NSStatusItem, the handler, and menu items:
+    // Static reference to our NSStatusItem, the handler, and menu items:
     static NSStatusItem* statusItem = nil;
     static StatusItemHandler* itemHandler = nil;
     static NSMenuItem* lowItem = nil;
     static NSMenuItem* mediumItem = nil;
     static NSMenuItem* highItem = nil;
 
-    // Store pointers to both the normal and highlighted versions of your icon
+    // Pointers to both the normal and highlighted versions of the icon
     static NSImage* normalIcon = nil;
     static NSImage* highlightedIcon = nil;
 
@@ -155,7 +149,7 @@ namespace TrayIconMac
         [menu addItem:[NSMenuItem separatorItem]];
 
         // Quit item
-        NSMenuItem* quitItem = [[NSMenuItem alloc] initWithTitle:@"Quit Fader Keys"
+        NSMenuItem* quitItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
                                                           action:@selector(quitApp:)
                                                    keyEquivalent:@""];
         [quitItem setTarget:itemHandler];
@@ -166,7 +160,7 @@ namespace TrayIconMac
         [[statusItem button] cell].highlighted = (NSChangeBackgroundCellMask | NSContentsCellMask);
     }
 
-    // Destroys the status item (call at shutdown).
+    // Destroy the status item
     void removeStatusBarIcon()
     {
         if (statusItem != nil)

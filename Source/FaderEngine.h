@@ -39,7 +39,7 @@ private:
     /** Handles bank switching commands */
     bool handleBankSwitching(int keyCode);
 
-    // MIDI devices
+    // MIDI setup devices
     void setupMidiDevices();
     void closeMidiDevices();
 
@@ -50,15 +50,13 @@ private:
     static constexpr int numFaders = 8;
     std::array<int, numFaders> faderValues{};
 
-    // Fader methods
+    // Fader nudge methods
     void nudgeFader(int faderIndex, int delta);
-    void sendFaderMove(int faderIndex, int value);
 
     // Bank methods
     void nudgeBankLeft();
     void nudgeBankRight();
 
-    // Replace fineTune with sensitivity
     NudgeSensitivity sensitivity = NudgeSensitivity::Medium;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderEngine)
