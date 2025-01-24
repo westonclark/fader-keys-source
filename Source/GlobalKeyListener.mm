@@ -16,6 +16,27 @@
 
 namespace
 {
+    // Add this function to detect if the frontmost application is a DAW you care about.
+    bool isSupportedDawFocused()
+    {
+        auto frontmostApp = [NSWorkspace sharedWorkspace].frontmostApplication;
+        if (frontmostApp == nil)
+            return false;
+
+        auto bundleID = frontmostApp.bundleIdentifier;
+        if (bundleID == nil)
+            return false;
+
+        // Replace these with the actual bundle identifiers for each DAW you care about.
+        static const std::unordered_set<std::string> supportedDawBundleIDs {
+            "com.avid.ProTools",    // Pro Tools
+            "com.apple.logic10",    // Logic Pro X
+            "com.ableton.live",     // Ableton Live
+        };
+
+        return (supportedDawBundleIDs.find([bundleID UTF8String]) != supportedDawBundleIDs.end());
+    }
+
     CFMachPortRef eventTap = nullptr;
     CFRunLoopSourceRef runLoopSource = nullptr;
     FaderEngine* globalKeyEngine = nullptr;
@@ -55,7 +76,6 @@ namespace
             {
                 unsigned short keyCode = [nsEvent keyCode];
                 bool isKeyDown = (type == kCGEventKeyDown);
-                // Get shift state directly from the event
                 bool isShiftDown = (CGEventGetFlags(event) & kCGEventFlagMaskShift) != 0;
 
                 // Check Caps Lock state
@@ -63,17 +83,20 @@ namespace
                 bool isCapsLockOn = ((flags & kCGEventFlagMaskAlphaShift) != 0);
                 TrayIconMac::updateCapsLockState(isCapsLockOn);
 
-                if (isCapsLockOn)
+                // Only swallow keystroke if:
+                //    1) Caps-Lock is ON
+                //    2) The frontmost application is one of the DAWs
+                //    3) keyCode is in 'validKeyCodes'
+                if (isCapsLockOn
+                    && isSupportedDawFocused()
+                    && (validKeyCodes.find(keyCode) != validKeyCodes.end()))
                 {
-                    if (validKeyCodes.find(keyCode) != validKeyCodes.end())
+                    juce::MessageManager::callAsync([=]()
                     {
-                        juce::MessageManager::callAsync([=]()
-                        {
-                            if (globalKeyEngine != nullptr)
-                                globalKeyEngine->handleGlobalKeycode((int)keyCode, isKeyDown, isShiftDown);
-                        });
-                        return nullptr;  // Swallow event
-                    }
+                        if (globalKeyEngine != nullptr)
+                            globalKeyEngine->handleGlobalKeycode((int)keyCode, isKeyDown, isShiftDown);
+                    });
+                    return nullptr;  // Swallow event
                 }
             }
         }
@@ -82,7 +105,7 @@ namespace
         return event;
     }
 
-// Keep retrying to create the event tap until user grants permission
+    // Keep retrying to create the event tap until user grants permission
     class EventTapRetryTimer : public juce::Timer
     {
     public:
