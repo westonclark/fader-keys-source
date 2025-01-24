@@ -144,12 +144,13 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
 
 // GLOBAL KEYCODE HANDLING
 //==============================================================================
-void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown)
+
+void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown, bool isShiftDown)
 {
     if (!isKeyDown)
         return;
 
-    if (handleBankSwitching(keyCode))
+    if (handleBankSwitching(keyCode, isShiftDown))
         return;
 
     // Get movement amounts for current sensitivity
@@ -242,15 +243,21 @@ juce::MidiMessage FaderEngine::createPitchWheelMessage(int faderIndex, int value
 
 // BANK SWITCHING
 //==============================================================================
-bool FaderEngine::handleBankSwitching(int keyCode)
+bool FaderEngine::handleBankSwitching(int keyCode, bool isShiftDown)
 {
     switch (keyCode)
     {
     case 18: // '1' key
-        nudgeBankLeft();
+        if (isShiftDown)
+            nudgeBankLeft8();
+        else
+            nudgeBankLeft();
         return true;
     case 19: // '2' key
-        nudgeBankRight();
+        if (isShiftDown)
+            nudgeBankRight8();
+        else
+            nudgeBankRight();
         return true;
     default:
         return false;
@@ -289,6 +296,44 @@ void FaderEngine::nudgeBankRight()
     uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
     uint8_t buttonPress[3] = {0xB0, 0x2F, 0x42};
     uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x02};
+
+    midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
+}
+
+void FaderEngine::nudgeBankLeft8()
+{
+    if (midiOutput == nullptr)
+        return;
+
+    // Logic: Send note 46 for bank left
+    midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 46, (uint8_t)127));
+    midiOutput->sendMessageNow(juce::MidiMessage::noteOff(1, 46));
+
+    // Pro Tools: Zone select (0A), button press, button release
+    uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
+    uint8_t buttonPress[3] = {0xB0, 0x2F, 0x41}; // Using port 1 for bank left 8
+    uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x01};
+
+    midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
+}
+
+void FaderEngine::nudgeBankRight8()
+{
+    if (midiOutput == nullptr)
+        return;
+
+    // Logic: Send note 47 for bank right
+    midiOutput->sendMessageNow(juce::MidiMessage::noteOn(1, 47, (uint8_t)127));
+    midiOutput->sendMessageNow(juce::MidiMessage::noteOff(1, 47));
+
+    // Pro Tools: Zone select (0A), button press, button release
+    uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
+    uint8_t buttonPress[3] = {0xB0, 0x2F, 0x43}; // Using port 3 for bank right 8
+    uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x03};
 
     midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));

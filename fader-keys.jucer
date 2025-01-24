@@ -5,7 +5,6 @@
               bundleIdentifier="com.westonclarkmixing.faderkeys">
   <MAINGROUP id="fJv4GV" name="fader-keys">
     <GROUP id="{A8175E5F-EC5F-17EA-514C-E4F0319AFBC8}" name="Source">
-      <FILE id="Mampzy" name="FaderEngine.cpp" compile="1" resource="0" file="Source/FaderEngine.cpp"/>
       <FILE id="OaaapT" name="FaderEngine.h" compile="0" resource="0" file="Source/FaderEngine.h"/>
       <FILE id="ufVjuv" name="GlobalKeyListener.h" compile="0" resource="0"
             file="Source/GlobalKeyListener.h"/>
@@ -15,6 +14,7 @@
       <FILE id="wkKYgJ" name="TrayIconMac.mm" compile="1" resource="0" file="Source/TrayIconMac.mm"/>
       <FILE id="HA35lF" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
+    <FILE id="oQXX9H" name="FaderEngine.cpp" compile="1" resource="0" file="Source/FaderEngine.cpp"/>
     <FILE id="SvTf8H" name="sliders-large.png" compile="0" resource="1"
           file="Resources/sliders-large.png"/>
     <FILE id="ENaQUk" name="sliders-small.png" compile="0" resource="1"

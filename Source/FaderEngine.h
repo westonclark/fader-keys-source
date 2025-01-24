@@ -27,7 +27,7 @@ public:
     NudgeSensitivity getNudgeSensitivity() const { return sensitivity; }
     void setNudgeSensitivity(NudgeSensitivity newSensitivity) { sensitivity = newSensitivity; }
 
-    void handleGlobalKeycode(int keyCode, bool isKeyDown);
+    void handleGlobalKeycode(int keyCode, bool isKeyDown, bool isShiftDown);
 
 private:
     /** Creates MIDI messages for fader movement following HUI protocol */
@@ -37,7 +37,7 @@ private:
     juce::MidiMessage createPitchWheelMessage(int faderIndex, int value) const;
 
     /** Handles bank switching commands */
-    bool handleBankSwitching(int keyCode);
+    bool handleBankSwitching(int keyCode, bool isShiftDown);
 
     // MIDI setup devices
     void setupMidiDevices();
@@ -56,6 +56,8 @@ private:
     // Bank methods
     void nudgeBankLeft();
     void nudgeBankRight();
+    void nudgeBankLeft8();
+    void nudgeBankRight8();
 
     NudgeSensitivity sensitivity = NudgeSensitivity::Medium;
 

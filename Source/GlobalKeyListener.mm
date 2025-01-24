@@ -55,8 +55,10 @@ namespace
             {
                 unsigned short keyCode = [nsEvent keyCode];
                 bool isKeyDown = (type == kCGEventKeyDown);
+                // Get shift state directly from the event
+                bool isShiftDown = (CGEventGetFlags(event) & kCGEventFlagMaskShift) != 0;
 
-                // Check Caps Lock state again, in case there's a simultaneous toggling
+                // Check Caps Lock state
                 CGEventFlags flags = CGEventGetFlags(event);
                 bool isCapsLockOn = ((flags & kCGEventFlagMaskAlphaShift) != 0);
                 TrayIconMac::updateCapsLockState(isCapsLockOn);
@@ -68,7 +70,7 @@ namespace
                         juce::MessageManager::callAsync([=]()
                         {
                             if (globalKeyEngine != nullptr)
-                                globalKeyEngine->handleGlobalKeycode((int)keyCode, isKeyDown);
+                                globalKeyEngine->handleGlobalKeycode((int)keyCode, isKeyDown, isShiftDown);
                         });
                         return nullptr;  // Swallow event
                     }
