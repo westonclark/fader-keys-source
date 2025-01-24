@@ -26,11 +26,22 @@ public:
     //==============================================================================
     void initialise(const juce::String &) override
     {
-        // Create the core engine
-        faderEngine = std::make_unique<FaderEngine>();
+        // Initialize properties
+        appProperties = std::make_unique<juce::ApplicationProperties>();
+        appProperties->setStorageParameters(getPropertyFileOptions());
 
-        // Create and show tray icon
+        auto *settings = getAppProperties().getUserSettings();
+
+        // Load the stored sensitivity
+        auto lastSensitivity = (FaderEngine::NudgeSensitivity)settings->getIntValue("nudgeSensitivity",
+                                                                                    (int)FaderEngine::NudgeSensitivity::Medium);
+
+        faderEngine = std::make_unique<FaderEngine>();
+        faderEngine->setNudgeSensitivity(lastSensitivity);
+
+        // update menu to reflect loaded sensitivity
         TrayIconMac::createStatusBarIcon(faderEngine.get());
+        TrayIconMac::updateSensitivityMenu(lastSensitivity);
 
         // Start the global key listener
         startGlobalKeyListener(faderEngine.get());
@@ -53,8 +64,30 @@ public:
     {
     }
 
+    //==============================================================================
+    juce::PropertiesFile::Options getPropertyFileOptions()
+    {
+        juce::PropertiesFile::Options options;
+        options.applicationName = getApplicationName();
+        options.filenameSuffix = ".settings";
+        options.folderName = "FaderKeys";                    // settings folder
+        options.osxLibrarySubFolder = "Application Support"; // lives in ~/Library/Application Support
+        return options;
+    }
+
+    juce::ApplicationProperties &getAppProperties()
+    {
+        if (!appProperties)
+        {
+            appProperties = std::make_unique<juce::ApplicationProperties>();
+            appProperties->setStorageParameters(getPropertyFileOptions());
+        }
+        return *appProperties;
+    }
+
 private:
     std::unique_ptr<FaderEngine> faderEngine;
+    std::unique_ptr<juce::ApplicationProperties> appProperties;
 };
 
 //==============================================================================

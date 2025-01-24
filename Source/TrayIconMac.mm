@@ -3,6 +3,7 @@
 #import <Cocoa/Cocoa.h>
 #include "TrayIconMac.h"
 #include "FaderEngine.h"
+#include "Main.h"
 
 // A simple Objective‐C helper "handler" that can forward clicks to C++:
 @interface StatusItemHandler : NSObject
@@ -33,6 +34,17 @@
     {
         engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::Low);
         ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::Low);
+
+        // Persist setting in properties file
+        if (auto* app = dynamic_cast<FaderKeysApplication*>(juce::JUCEApplication::getInstance()))
+        {
+            auto& props = app->getAppProperties();
+            auto* userSettings = props.getUserSettings();
+            userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::Low);
+            bool saved = userSettings->saveIfNeeded();
+            DBG("Saving Low sensitivity. Save successful: " << (saved ? "yes" : "no"));
+            DBG("Current file contents: " << userSettings->getValue("nudgeSensitivity"));
+        }
     }
 }
 
@@ -42,6 +54,17 @@
     {
         engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::Medium);
         ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::Medium);
+
+        // Persist setting in properties file
+        if (auto* app = dynamic_cast<FaderKeysApplication*>(juce::JUCEApplication::getInstance()))
+        {
+            auto& props = app->getAppProperties();
+            auto* userSettings = props.getUserSettings();
+            userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::Medium);
+            bool saved = userSettings->saveIfNeeded();
+            DBG("Saving Medium sensitivity. Save successful: " << (saved ? "yes" : "no"));
+            DBG("Current file contents: " << userSettings->getValue("nudgeSensitivity"));
+        }
     }
 }
 
@@ -51,6 +74,17 @@
     {
         engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::High);
         ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::High);
+
+        // Persist setting in properties file
+        if (auto* app = dynamic_cast<FaderKeysApplication*>(juce::JUCEApplication::getInstance()))
+        {
+            auto& props = app->getAppProperties();
+            auto* userSettings = props.getUserSettings();
+            userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::High);
+            bool saved = userSettings->saveIfNeeded();
+            DBG("Saving High sensitivity. Save successful: " << (saved ? "yes" : "no"));
+            DBG("Current file contents: " << userSettings->getValue("nudgeSensitivity"));
+        }
     }
 }
 
