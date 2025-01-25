@@ -16,29 +16,69 @@
 
 namespace
 {
-    // Detect if the frontmost application is a DAW that we support.
+    class FrontmostAppObserver
+    {
+    public:
+        FrontmostAppObserver()
+        {
+            observer = [[NSWorkspace sharedWorkspace].notificationCenter
+                addObserverForName:NSWorkspaceDidActivateApplicationNotification
+                object:[NSWorkspace sharedWorkspace]
+                queue:[NSOperationQueue mainQueue]
+                usingBlock:^(NSNotification *notification) {
+                    updateCachedState();
+                }];
+
+            updateCachedState();
+        }
+
+        ~FrontmostAppObserver()
+        {
+            if (observer) {
+                [[NSWorkspace sharedWorkspace].notificationCenter removeObserver:observer];
+            }
+        }
+
+        bool isDawFocused() const { return cachedIsDawFocused; }
+
+    private:
+        void updateCachedState()
+        {
+            @autoreleasepool {
+                NSRunningApplication* frontmostApp = [[NSWorkspace sharedWorkspace] frontmostApplication];
+                if (frontmostApp == nil || frontmostApp.bundleIdentifier == nil)
+                {
+                    cachedIsDawFocused = false;
+                    return;
+                }
+
+                static const std::unordered_set<std::string> supportedDawBundleIDs {
+                    "com.avid.ProTools",    // Pro Tools
+                    "com.apple.logic10",    // Logic Pro X
+                    "com.ableton.live",     // Ableton Live
+                    "com.cockos.reaper",    // Reaper
+                    "com.steinberg.cubase14", // Cubase
+                    "com.presonus.studioone2", // Studio One
+                    "com.uaudio.luna" // Luna
+                };
+
+                std::string bundleIDStr = [frontmostApp.bundleIdentifier UTF8String];
+                cachedIsDawFocused = (supportedDawBundleIDs.find(bundleIDStr) != supportedDawBundleIDs.end());
+            }
+        }
+
+        bool cachedIsDawFocused = false;
+        id observer = nil;
+    };
+
+    std::unique_ptr<FrontmostAppObserver> appObserver;
+
     bool isSupportedDawFocused()
     {
-        auto frontmostApp = [NSWorkspace sharedWorkspace].frontmostApplication;
-        if (frontmostApp == nil)
+        if (!appObserver) {
             return false;
-
-        auto bundleID = frontmostApp.bundleIdentifier;
-        if (bundleID == nil)
-            return false;
-
-        // Bundle identifiers for each DAW that we want to support.
-        static const std::unordered_set<std::string> supportedDawBundleIDs {
-            "com.avid.ProTools",    // Pro Tools
-            "com.apple.logic10",    // Logic Pro X
-            "com.ableton.live",     // Ableton Live
-            "com.cockos.reaper",    // Reaper
-            "com.steinberg.cubase14", // Cubase
-            "com.presonus.studioone2", // Studio One
-            "com.uaudio.luna" // Luna
-        };
-
-        return (supportedDawBundleIDs.find([bundleID UTF8String]) != supportedDawBundleIDs.end());
+        }
+        return appObserver->isDawFocused();
     }
 
     CFMachPortRef eventTap = nullptr;
@@ -146,6 +186,9 @@ void startGlobalKeyListener(FaderEngine* engine)
 
     globalKeyEngine = engine;
 
+    // Initialize the app observer
+    appObserver = std::make_unique<FrontmostAppObserver>();
+
     CGEventMask eventMask = (1 << kCGEventKeyDown) | (1 << kCGEventKeyUp) | (1 << kCGEventFlagsChanged);
     eventTap = CGEventTapCreate(kCGSessionEventTap,
                                 kCGHeadInsertEventTap,
@@ -191,4 +234,5 @@ void stopGlobalKeyListener()
     }
 
     globalKeyEngine = nullptr;
+    appObserver.reset();
 }

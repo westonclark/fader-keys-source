@@ -41,9 +41,7 @@
             auto& props = app->getAppProperties();
             auto* userSettings = props.getUserSettings();
             userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::Low);
-            bool saved = userSettings->saveIfNeeded();
-            DBG("Saving Low sensitivity. Save successful: " << (saved ? "yes" : "no"));
-            DBG("Current file contents: " << userSettings->getValue("nudgeSensitivity"));
+            userSettings->saveIfNeeded();
         }
     }
 }
@@ -61,9 +59,7 @@
             auto& props = app->getAppProperties();
             auto* userSettings = props.getUserSettings();
             userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::Medium);
-            bool saved = userSettings->saveIfNeeded();
-            DBG("Saving Medium sensitivity. Save successful: " << (saved ? "yes" : "no"));
-            DBG("Current file contents: " << userSettings->getValue("nudgeSensitivity"));
+            userSettings->saveIfNeeded();
         }
     }
 }
@@ -81,9 +77,7 @@
             auto& props = app->getAppProperties();
             auto* userSettings = props.getUserSettings();
             userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::High);
-            bool saved = userSettings->saveIfNeeded();
-            DBG("Saving High sensitivity. Save successful: " << (saved ? "yes" : "no"));
-            DBG("Current file contents: " << userSettings->getValue("nudgeSensitivity"));
+            userSettings->saveIfNeeded();
         }
     }
 }
