@@ -1,29 +1,20 @@
 # Fader Keys
 
-Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intuitive way to adjust multiple faders without an external bank of faders.
+Control faders in your Digital Audio owrkstation using your computer keyboard. Fader Keys provides an intuitive way to adjust multiple faders at once without the need for an external bank of faders.
 
 ## Features
 
 - Control up to 8 faders simultaneously
 - Adjustable fader sensitivity
-- Compatible with Pro Tools HUI protocol
+- Supports both the HUI and MCU protocols for use with Protools and most other DAWs
 
 ## Controls
 
-<img src="https://github.com/user-attachments/assets/6ea614bb-4b4a-4912-b306-ca0631584bc7" width="75%" alt="Keyboard Control Layout">
+![Untitled copy](https://github.com/user-attachments/assets/2cbd655c-ece4-405d-bc27-5556960f5058)
 
-| Keys          | Action                    |
-| ------------- | ------------------------- |
-| **CAPS LOCK** | Toggle application on/off |
-| **1** - **2**  | Bank faders left/right    |
-| **Q** - **A**  | Fader 1 (Up/Down)         |
-| **W** - **S**  | Fader 2 (Up/Down)         |
-| **E** - **D**  | Fader 3 (Up/Down)         |
-| **R** - **F**  | Fader 4 (Up/Down)         |
-| **T** - **G**  | Fader 5 (Up/Down)         |
-| **Y** - **H**  | Fader 6 (Up/Down)         |
-| **U** - **J**  | Fader 7 (Up/Down)         |
-| **I** - **K**  | Fader 8 (Up/Down)         |
+> [!NOTE]  
+> When Caps Lock is active, the app icon in the menu bar will highlight red to remind you that your keyboard focus is temporarily being taken over
+<img width="310" alt="Screenshot 2025-01-24 at 9 54 38 PM" src="https://github.com/user-attachments/assets/855dc981-e244-4239-a6be-60b0e7b0fd66" />
 
 ## Installation & Setup
 
@@ -32,40 +23,43 @@ Control your DAW faders using your QWERTY keyboard. Fader Keys provides an intui
 - Download the `.pkg` file from the latest version from our [GitHub Releases page](https://github.com/westonclark/fader-keys/releases)
 - Run the downloaded `.pkg` installer
 
+
+
+### 2. Launch & Grant Accessibility Permissions
+
 - Launch Fader Keys from your Applications folder
-
-### 2. Grant Accessibility Permissions
-
 - When prompted, grant Fader Keys access to keyboard input via System Preferences
-- This step is required for the application to function
 
-<img src="https://github.com/user-attachments/assets/3e533cc7-366f-467e-8d6c-336218ca46f5" width="50%" alt="Accessibility Settings">
+<img width="827" alt="Screenshot 2025-01-24 at 11 18 08 PM" src="https://github.com/user-attachments/assets/15fc156d-0092-4b31-8757-6151aae2061c" />
 
 ### 3. Pro Tools Configuration
 
-#### Enable MIDI Input
+#### Enable Fader Keys MIDI Input
 
+In order for Pro Tools to see the Fader Keys port, you will need ot add it to tthe list of MIDI Input devices
 1. Navigate to `Setup → MIDI → MIDI Input Devices`
 2. Check the box next to Fader Keys
 
-<img src="https://github.com/user-attachments/assets/8de6b837-3589-4f5b-97af-dbb4095a79be" width="50%" alt="MIDI Input Setup">
+<img src="https://github.com/user-attachments/assets/8de6b837-3589-4f5b-97af-dbb4095a79be" alt="MIDI Input Setup">
 
 #### Configure HUI Controller
 
 1. Go to `Setup → Peripherals`
-2. Add Fader Keys as a HUI controller
+2. Add a HUI controller
+3. Assing the Fader Keys ports to input and output
 
-<img src="https://github.com/user-attachments/assets/8f3c6e2e-6c1f-4249-8544-246c7885916b" width="50%" alt="Peripherals Setup">
+<img src="https://github.com/user-attachments/assets/8f3c6e2e-6c1f-4249-8544-246c7885916b" alt="Peripherals Setup">
 
 ### 4. Optional: Customize Mix Window Behavior
 
-- Adjust mix window banking behavior in `Pro Tools → Settings → Mixing`
+- If needed, adjust mix window banking behavior in `Pro Tools → Settings → Mixing`
 
 <img src="https://github.com/user-attachments/assets/63637c14-4e0f-42d4-86b0-e4f643e84683" width="50%" alt="Mix Window Settings">
 
 ### 5. Optional:Configure Menu Bar Settings
 
-- Locate the Fader Keys icon in your menu bar
-- Adjust fader sensitivity to your preference (low ~.5db moves, medium ~1db moves, high ~2db moves)
+- Adjust fader sensitivity to your preference in the menu car (low ~.5db moves, medium ~1db moves, high ~2db moves)
+  
+<img width="484" alt="Screenshot 2025-01-24 at 9 54 48 PM" src="https://github.com/user-attachments/assets/e9879612-2c1b-44d5-8a44-102d6e06c681" />
 
-<img width="358" alt="Screenshot 2025-01-18 at 10 49 51 AM" src="https://github.com/user-attachments/assets/a3f873dd-501a-4a2a-a017-ee35afb52a67" />
+
