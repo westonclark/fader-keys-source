@@ -153,8 +153,9 @@ void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown, bool isShiftD
     if (handleBankSwitching(keyCode, isShiftDown))
         return;
 
-    // Get movement amounts for current sensitivity
-    const auto &nudgeAmounts = NUDGE_VALUES[static_cast<int>(sensitivity)];
+    // Get movement amounts based on current sensitivity or shift override
+    const auto &nudgeAmounts = isShiftDown ? NUDGE_VALUES[static_cast<int>(NudgeSensitivity::High)] : // Use High sensitivity if shift is pressed
+                                   NUDGE_VALUES[static_cast<int>(sensitivity)];                       // Otherwise use current sensitivity
 
     // Look for matching fader control
     for (const auto &mapping : KEY_FADER_MAP)
