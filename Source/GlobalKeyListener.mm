@@ -16,7 +16,7 @@
 
 namespace
 {
-    // Add this function to detect if the frontmost application is a DAW you care about.
+    // Detect if the frontmost application is a DAW that we support.
     bool isSupportedDawFocused()
     {
         auto frontmostApp = [NSWorkspace sharedWorkspace].frontmostApplication;
@@ -27,11 +27,15 @@ namespace
         if (bundleID == nil)
             return false;
 
-        // Replace these with the actual bundle identifiers for each DAW you care about.
+        // Bundle identifiers for each DAW that we want to support.
         static const std::unordered_set<std::string> supportedDawBundleIDs {
             "com.avid.ProTools",    // Pro Tools
             "com.apple.logic10",    // Logic Pro X
             "com.ableton.live",     // Ableton Live
+            "com.cockos.reaper",    // Reaper
+            "com.steinberg.cubase14", // Cubase
+            "com.presonus.studioone2", // Studio One
+            "com.uaudio.luna" // Luna
         };
 
         return (supportedDawBundleIDs.find([bundleID UTF8String]) != supportedDawBundleIDs.end());
