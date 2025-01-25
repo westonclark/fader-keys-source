@@ -16,3 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Changed menu item `Quit Fader Keys` to `Quit`
+
+## [0.3.0] - 2024-01-24
+
+### Added
+- If shift is held down when banking, bank by 8 instead of 1
+- If shift is held down when nudging a fader, temporarily overide sensitivity to high 
+- Only steal keystrokes if a supported DAW is in focus
+
+### Changed
+- Persist user sensitivifty settings on app restart
