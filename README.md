@@ -16,9 +16,6 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 > [!NOTE]
 > The menu bar icon will highlight red when Caps Lock is active, indicating that keyboard focus is being captured
 
-
-<img width="310" alt="Menu Bar Icon" src="https://github.com/user-attachments/assets/855dc981-e244-4239-a6be-60b0e7b0fd66" />
-
 ## Installation & Setup
 
 ### 1. Install the Application
