@@ -10,7 +10,8 @@ Control faders in your Digital Audio owrkstation using your computer keyboard. F
 
 ## Controls
 
-![Untitled copy](https://github.com/user-attachments/assets/2cbd655c-ece4-405d-bc27-5556960f5058)
+![keyboard-layout](https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d)
+
 
 > [!NOTE]  
 > When Caps Lock is active, the app icon in the menu bar will highlight red to remind you that your keyboard focus is temporarily being taken over
@@ -54,7 +55,7 @@ In order for Pro Tools to see the Fader Keys port, you will need ot add it to tt
 
 - If needed, adjust mix window banking behavior in `Pro Tools → Settings → Mixing`
 
-<img src="https://github.com/user-attachments/assets/63637c14-4e0f-42d4-86b0-e4f643e84683" width="50%" alt="Mix Window Settings">
+<img src="https://github.com/user-attachments/assets/63637c14-4e0f-42d4-86b0-e4f643e84683" alt="Mix Window Settings">
 
 ### 5. Optional:Configure Menu Bar Settings
 
