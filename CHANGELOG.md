@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - If shift is held down when banking, bank by 8 instead of 1
-- If shift is held down when nudging a fader, temporarily overide sensitivity to high 
+- If shift is held down when nudging a fader, temporarily overide sensitivity to high
 - Only steal keystrokes if a supported DAW is in focus
 
 ### Changed
