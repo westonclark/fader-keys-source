@@ -69,6 +69,7 @@ class FaderKeysApplication : public juce::JUCEApplication
 public:
     FaderKeysApplication()
     {
+        // Initialize once in constructor
         appProperties = std::make_unique<juce::ApplicationProperties>();
         appProperties->setStorageParameters(getPropertyFileOptions());
         registrationManager = std::make_unique<RegistrationManager>(*appProperties);
@@ -148,11 +149,8 @@ public:
     //==============================================================================
     juce::ApplicationProperties& getAppProperties()
     {
-        if (!appProperties)
-        {
-            appProperties = std::make_unique<juce::ApplicationProperties>();
-            appProperties->setStorageParameters(getPropertyFileOptions());
-        }
+        // Return reference to existing instance
+        jassert(appProperties != nullptr); // Catch programming errors
         return *appProperties;
     }
 
