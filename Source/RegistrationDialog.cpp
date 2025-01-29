@@ -1,6 +1,6 @@
 #include "RegistrationDialog.h"
 
-RegistrationDialog::RegistrationDialog(std::function<bool(const juce::String&)> registrationFunc)
+RegistrationDialog::RegistrationDialog(std::function<void(const juce::String&, std::function<void(bool)>)> registrationFunc)
     : onRegister(registrationFunc)
 {
     serialNumberInput.setTextToShowWhenEmpty("Enter Serial Number", juce::Colours::grey);
@@ -15,19 +15,27 @@ RegistrationDialog::RegistrationDialog(std::function<bool(const juce::String&)> 
 
 void RegistrationDialog::attemptRegistration()
 {
-    if (onRegister(serialNumberInput.getText()))
+    // Disable the button while checking
+    registerButton.setEnabled(false);
+
+    onRegister(serialNumberInput.getText(), [this](bool success)
     {
-        // If registration is successful, close the window
-        if (auto* dw = findParentComponentOfClass<juce::DialogWindow>())
-            dw->exitModalState(1);  // 1 indicates success
-    }
-    else
-    {
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::MessageBoxIconType::WarningIcon,
-            "Invalid Serial Number",
-            "Please enter a valid serial number.");
-    }
+        registerButton.setEnabled(true);
+
+        if (success)
+        {
+            // If registration is successful, close the window
+            if (auto* dw = findParentComponentOfClass<juce::DialogWindow>())
+                dw->exitModalState(1);  // 1 indicates success
+        }
+        else
+        {
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Invalid Serial Number",
+                "Please enter a valid serial number.");
+        }
+    });
 }
 
 void RegistrationDialog::resized()
@@ -38,18 +46,19 @@ void RegistrationDialog::resized()
     registerButton.setBounds(bounds.removeFromTop(30));
 }
 
-void RegistrationDialog::show(std::function<bool(const juce::String&)> onRegister,
+void RegistrationDialog::show(std::function<void(const juce::String&, std::function<void(bool)>)> onRegister,
                             std::function<void()> onSuccess)
 {
     auto dialog = std::make_unique<RegistrationDialog>(
-        [onRegister, onSuccess](const juce::String& serial)
+        [onRegister, onSuccess](const juce::String& serial, std::function<void(bool)> callback)
         {
-            if (onRegister(serial))
+            onRegister(serial, [callback, onSuccess](bool success)
             {
-                onSuccess();
-                return true;
-            }
-            return false;
+                if (success)
+                    onSuccess();
+                if (callback)
+                    callback(success);
+            });
         });
 
     juce::DialogWindow::LaunchOptions options;
@@ -67,5 +76,3 @@ void RegistrationDialog::show(std::function<bool(const juce::String&)> onRegiste
         window->setVisible(true);
     }
 }
-
-// Rest of the implementation remains the same as your original RegistrationComponent

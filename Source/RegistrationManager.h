@@ -7,7 +7,9 @@ public:
     RegistrationManager(juce::ApplicationProperties& properties);
 
     bool isRegistered() const;
-    bool registerSerialNumber(const juce::String& serialNumber);
+    // bool registerSerialNumber(const juce::String& serialNumber);
+    void registerSerialNumberAsync(const juce::String& serialNumber,
+                                   std::function<void(bool)> callback);
 
 private:
     bool validateSerialNumber(const juce::String& serialNumber);

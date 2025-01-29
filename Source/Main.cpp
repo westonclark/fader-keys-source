@@ -85,14 +85,16 @@ public:
         if (!registrationManager->isRegistered())
         {
             RegistrationDialog::show(
-                [this](const juce::String& serial)
+                [this](const juce::String& serial, std::function<void(bool)> callback)
                 {
-                    if (registrationManager->registerSerialNumber(serial))
-                    {
-                        showRegistrationSuccessMessage();
-                        return true;
-                    }
-                    return false;
+                    registrationManager->registerSerialNumberAsync(serial,
+                        [this, callback](bool success)
+                        {
+                            if (success)
+                                showRegistrationSuccessMessage();
+                            if (callback)
+                                callback(success);
+                        });
                 },
                 [this]() { finishStartup(); }
             );

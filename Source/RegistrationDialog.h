@@ -4,16 +4,16 @@
 class RegistrationDialog : public juce::Component
 {
 public:
-    RegistrationDialog(std::function<bool(const juce::String&)> registrationFunc);
+    RegistrationDialog(std::function<void(const juce::String&, std::function<void(bool)>)> registrationFunc);
 
-    static void show(std::function<bool(const juce::String&)> onRegister,
+    static void show(std::function<void(const juce::String&, std::function<void(bool)>)> onRegister,
                     std::function<void()> onSuccess);
 
 private:
     void attemptRegistration();
     void resized() override;
 
-    std::function<bool(const juce::String&)> onRegister;
+    std::function<void(const juce::String&, std::function<void(bool)>)> onRegister;
     juce::TextEditor serialNumberInput;
     juce::TextButton registerButton;
 

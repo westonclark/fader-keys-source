@@ -11,17 +11,29 @@ bool RegistrationManager::isRegistered() const
     return settings->getBoolValue("isRegistered", false);
 }
 
-bool RegistrationManager::registerSerialNumber(const juce::String& serialNumber)
+void RegistrationManager::registerSerialNumberAsync(const juce::String& serialNumber,
+                                                    std::function<void(bool)> callback)
 {
-    const bool isValid = validateSerialNumber(serialNumber);
-    if (isValid)
+    std::thread([this, serialNumber, callback]()
     {
-        auto* settings = appProperties.getUserSettings();
-        settings->setValue("isRegistered", true);
-        settings->setValue("serialNumber", serialNumber);
-        settings->saveIfNeeded();
-    }
-    return isValid;
+        const bool isValid = validateSerialNumber(serialNumber);
+
+        if (isValid)
+        {
+            // Store registration info in settings if valid
+            auto* settings = appProperties.getUserSettings();
+            settings->setValue("isRegistered", true);
+            settings->setValue("serialNumber", serialNumber);
+            settings->saveIfNeeded();
+        }
+
+        // Call the callback on the message thread
+        juce::MessageManager::callAsync([this, isValid, callback]()
+        {
+            if (callback)
+                callback(isValid);
+        });
+    }).detach();
 }
 
 bool RegistrationManager::validateSerialNumber(const juce::String& serialNumber)
