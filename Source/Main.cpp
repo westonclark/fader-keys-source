@@ -187,25 +187,18 @@ public:
             settings->setValue("serialNumber", serialNumber);
             settings->saveIfNeeded();
 
-            // Schedule a quit and relaunch
-            juce::Timer::callAfterDelay(500, [this]()
-            {
-                // Get the app path before quitting
-                juce::String appPath = juce::File::getSpecialLocation(
-                    juce::File::currentApplicationFile).getFullPathName();
-
-                // Create the process arguments
-                juce::StringArray args;
-                args.add("open");
-                args.add(appPath);
-
-                // Start the new process
-                juce::ChildProcess process;
-                process.start(args);
-
-                // Now quit this instance
-                JUCEApplication::getInstance()->systemRequestedQuit();
-            });
+            // Show success message and quit
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::InfoIcon,
+                "Registration Successful",
+                "Please relaunch Fader Keys to complete setup.",
+                "OK",
+                nullptr,
+                juce::ModalCallbackFunction::create([](int) {
+                    juce::Timer::callAfterDelay(500, []() {
+                        juce::JUCEApplication::getInstance()->systemRequestedQuit();
+                    });
+                }));
         }
         return isValid;
     }
