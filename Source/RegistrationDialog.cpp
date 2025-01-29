@@ -10,7 +10,11 @@ RegistrationDialog::RegistrationDialog(std::function<void(const juce::String&, s
     registerButton.onClick = [this] { attemptRegistration(); };
     addAndMakeVisible(registerButton);
 
-    setSize(300, 100);
+    quitButton.setButtonText("Quit");
+    quitButton.onClick = [this] { quit(); };
+    addAndMakeVisible(quitButton);
+
+    setSize(300, 140); // Adjusted height without title
 }
 
 void RegistrationDialog::attemptRegistration()
@@ -38,12 +42,22 @@ void RegistrationDialog::attemptRegistration()
     });
 }
 
+void RegistrationDialog::quit()
+{
+    juce::JUCEApplication::getInstance()->systemRequestedQuit();
+}
+
 void RegistrationDialog::resized()
 {
-    auto bounds = getLocalBounds().reduced(10);
+    auto bounds = getLocalBounds().reduced(20);
+
     serialNumberInput.setBounds(bounds.removeFromTop(30));
-    bounds.removeFromTop(10);
+    bounds.removeFromTop(15);
+
     registerButton.setBounds(bounds.removeFromTop(30));
+    bounds.removeFromTop(15);
+
+    quitButton.setBounds(bounds.removeFromTop(30));
 }
 
 void RegistrationDialog::show(std::function<void(const juce::String&, std::function<void(bool)>)> onRegister,
