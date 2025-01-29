@@ -80,7 +80,7 @@ namespace TrayIconMac
     static NSStatusBarButton* statusButton = nil;
 
     // Creates the NSStatusItem, attaches a native macOS menu.
-    void createStatusBarIcon (FaderEngine* engine)
+    void createStatusBarIcon(FaderEngine* engine, bool engineEnabled)
     {
         if (statusItem != nil)
             return;
@@ -99,8 +99,7 @@ namespace TrayIconMac
 
             if (normalIcon != nil)
             {
-                [normalIcon setTemplate:NO];  // Allows background coloring
-
+                [normalIcon setTemplate:NO];
                 [normalIcon setSize:NSMakeSize(24, 24)];
                 [statusButton setImage:normalIcon];
             }
@@ -112,44 +111,46 @@ namespace TrayIconMac
         // Create the menu
         NSMenu* menu = [[NSMenu alloc] initWithTitle:@"FadersMenu"];
 
-        // Title item
-        NSMenuItem* titleItem = [[NSMenuItem alloc] initWithTitle:@"Nudge Sensitivity"
+        if (engineEnabled)
+        {
+            // Title item
+            NSMenuItem* titleItem = [[NSMenuItem alloc] initWithTitle:@"Nudge Sensitivity"
                                                            action:nil
                                                     keyEquivalent:@""];
-        [titleItem setEnabled:NO];
-        [menu addItem:titleItem];
+            [titleItem setEnabled:NO];
+            [menu addItem:titleItem];
 
-        // Separator
-        [menu addItem:[NSMenuItem separatorItem]];
+            // Separator
+            [menu addItem:[NSMenuItem separatorItem]];
 
-        // Sensitivity options
-        lowItem = [[NSMenuItem alloc] initWithTitle:@"Low"
-                                             action:@selector(setLowSensitivity:)
-                                      keyEquivalent:@""];
-        mediumItem = [[NSMenuItem alloc] initWithTitle:@"Medium"
-                                                action:@selector(setMediumSensitivity:)
-                                         keyEquivalent:@""];
-        highItem = [[NSMenuItem alloc] initWithTitle:@"High"
-                                              action:@selector(setHighSensitivity:)
-                                       keyEquivalent:@""];
+            // Sensitivity options
+            lowItem = [[NSMenuItem alloc] initWithTitle:@"Low"
+                                                 action:@selector(setLowSensitivity:)
+                                          keyEquivalent:@""];
+            mediumItem = [[NSMenuItem alloc] initWithTitle:@"Medium"
+                                                    action:@selector(setMediumSensitivity:)
+                                             keyEquivalent:@""];
+            highItem = [[NSMenuItem alloc] initWithTitle:@"High"
+                                                  action:@selector(setHighSensitivity:)
+                                           keyEquivalent:@""];
 
-        [lowItem setTarget:itemHandler];
-        [mediumItem setTarget:itemHandler];
-        [highItem setTarget:itemHandler];
+            [lowItem setTarget:itemHandler];
+            [mediumItem setTarget:itemHandler];
+            [highItem setTarget:itemHandler];
 
-        // Initial state - set before attaching menu
-        [lowItem setState:NSControlStateValueOff];
-        [mediumItem setState:NSControlStateValueOn];  // Set medium as checked by default
-        [highItem setState:NSControlStateValueOff];
+            [lowItem setState:NSControlStateValueOff];
+            [mediumItem setState:NSControlStateValueOn];
+            [highItem setState:NSControlStateValueOff];
 
-        [menu addItem:lowItem];
-        [menu addItem:mediumItem];
-        [menu addItem:highItem];
+            [menu addItem:lowItem];
+            [menu addItem:mediumItem];
+            [menu addItem:highItem];
 
-        // Separator
-        [menu addItem:[NSMenuItem separatorItem]];
+            // Separator
+            [menu addItem:[NSMenuItem separatorItem]];
+        }
 
-        // Quit item
+        // Quit item (always show)
         NSMenuItem* quitItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
                                                           action:@selector(quitApp:)
                                                    keyEquivalent:@""];

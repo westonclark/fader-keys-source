@@ -7,7 +7,7 @@
 // Wraping native macOS status bar creation
 namespace TrayIconMac
 {
-    void createStatusBarIcon(FaderEngine *engine);
+    void createStatusBarIcon(FaderEngine* engine, bool engineEnabled = true);
 
     void removeStatusBarIcon();
 

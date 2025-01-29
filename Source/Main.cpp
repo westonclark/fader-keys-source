@@ -82,6 +82,9 @@ public:
     //==============================================================================
     void initialise(const juce::String&) override
     {
+        // Create tray icon first, but with engine disabled
+        TrayIconMac::createStatusBarIcon(nullptr, false);
+
         if (!registrationManager->isRegistered())
         {
             RegistrationDialog::show(
@@ -267,8 +270,9 @@ private:
         startGlobalKeyListener(faderEngine.get());
         DBG("GlobalKeyListener started");
 
-        // Create tray icon last
-        TrayIconMac::createStatusBarIcon(faderEngine.get());
+        // Remove the old tray icon and create new one with engine enabled
+        TrayIconMac::removeStatusBarIcon();
+        TrayIconMac::createStatusBarIcon(faderEngine.get(), true);
         TrayIconMac::updateSensitivityMenu(lastSensitivity);
         DBG("TrayIcon created");
 
