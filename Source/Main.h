@@ -30,6 +30,9 @@ public:
 
     juce::ApplicationProperties &getAppProperties();
 
+    bool isRegistered() const;
+    bool registerSerialNumber(const juce::String& serialNumber);
+
 private:
     juce::PropertiesFile::Options getPropertyFileOptions();
 
