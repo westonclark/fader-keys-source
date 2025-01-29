@@ -14,6 +14,34 @@
 
 #import <Cocoa/Cocoa.h>
 
+@interface ScopedObserver : NSObject
+{
+    id observer;
+}
+- (instancetype)initWithObserver:(id)obs;
+- (id)getObserver;
+@end
+
+@implementation ScopedObserver
+- (instancetype)initWithObserver:(id)obs {
+    self = [super init];
+    if (self) {
+        observer = obs;
+    }
+    return self;
+}
+
+- (void)dealloc {
+    if (observer) {
+        [[NSWorkspace sharedWorkspace].notificationCenter removeObserver:observer];
+    }
+}
+
+- (id)getObserver {
+    return observer;
+}
+@end
+
 namespace
 {
     class FrontmostAppObserver
@@ -21,7 +49,7 @@ namespace
     public:
         FrontmostAppObserver()
         {
-            observer = [[NSWorkspace sharedWorkspace].notificationCenter
+            id obs = [[NSWorkspace sharedWorkspace].notificationCenter
                 addObserverForName:NSWorkspaceDidActivateApplicationNotification
                 object:[NSWorkspace sharedWorkspace]
                 queue:[NSOperationQueue mainQueue]
@@ -29,15 +57,11 @@ namespace
                     updateCachedState();
                 }];
 
+            scopedObserver = [[ScopedObserver alloc] initWithObserver:obs];
             updateCachedState();
         }
 
-        ~FrontmostAppObserver()
-        {
-            if (observer) {
-                [[NSWorkspace sharedWorkspace].notificationCenter removeObserver:observer];
-            }
-        }
+        ~FrontmostAppObserver() = default; // The ScopedObserver will clean up automatically
 
         bool isDawFocused() const { return cachedIsDawFocused; }
 
@@ -68,7 +92,7 @@ namespace
         }
 
         bool cachedIsDawFocused = false;
-        id observer = nil;
+        ScopedObserver* scopedObserver = nil;
     };
 
     std::unique_ptr<FrontmostAppObserver> appObserver;

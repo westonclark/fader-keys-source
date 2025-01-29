@@ -121,20 +121,15 @@ public:
 
         // Ensure proper cleanup order
         TrayIconMac::removeStatusBarIcon();
-        DBG("TrayIcon removed");
 
         stopGlobalKeyListener();
-        DBG("GlobalKeyListener stopped");
 
         faderEngine.reset();
-        DBG("FaderEngine reset");
-
         // Clean up the dialog if it's still around
         if (activeDialog != nullptr)
         {
             activeDialog->exitModalState(0);
             activeDialog = nullptr;
-            DBG("Dialog closed");
         }
 
         DBG("Shutdown completed");
