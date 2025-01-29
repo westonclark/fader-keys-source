@@ -60,20 +60,9 @@ void RegistrationDialog::resized()
     quitButton.setBounds(bounds.removeFromTop(30));
 }
 
-void RegistrationDialog::show(std::function<void(const juce::String&, std::function<void(bool)>)> onRegister,
-                            std::function<void()> onSuccess)
+void RegistrationDialog::show(std::function<void(const juce::String&, std::function<void(bool)>)> onRegister)
 {
-    auto dialog = std::make_unique<RegistrationDialog>(
-        [onRegister, onSuccess](const juce::String& serial, std::function<void(bool)> callback)
-        {
-            onRegister(serial, [callback, onSuccess](bool success)
-            {
-                if (success)
-                    onSuccess();
-                if (callback)
-                    callback(success);
-            });
-        });
+    auto dialog = std::make_unique<RegistrationDialog>(onRegister);
 
     juce::DialogWindow::LaunchOptions options;
     options.content.setOwned(dialog.release());

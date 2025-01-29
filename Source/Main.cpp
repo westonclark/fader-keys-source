@@ -94,17 +94,18 @@ public:
                         [this, callback](bool success)
                         {
                             if (success)
+                            {
                                 showRegistrationSuccessMessage();
+                                // Don't call finishStartup() here
+                            }
                             if (callback)
                                 callback(success);
                         });
-                },
-                [this]() { finishStartup(); }
-            );
+                });
             return;
         }
 
-        finishStartup();
+        finishStartup();  // Only called on subsequent launches when already registered
     }
 
     void shutdown() override
