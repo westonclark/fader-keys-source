@@ -34,15 +34,6 @@
     {
         engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::Low);
         ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::Low);
-
-        // Persist setting in properties file
-        if (auto* app = dynamic_cast<FaderKeysApplication*>(juce::JUCEApplication::getInstance()))
-        {
-            auto& props = app->getAppProperties();
-            auto* userSettings = props.getUserSettings();
-            userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::Low);
-            userSettings->saveIfNeeded();
-        }
     }
 }
 
@@ -52,15 +43,6 @@
     {
         engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::Medium);
         ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::Medium);
-
-        // Persist setting in properties file
-        if (auto* app = dynamic_cast<FaderKeysApplication*>(juce::JUCEApplication::getInstance()))
-        {
-            auto& props = app->getAppProperties();
-            auto* userSettings = props.getUserSettings();
-            userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::Medium);
-            userSettings->saveIfNeeded();
-        }
     }
 }
 
@@ -70,15 +52,6 @@
     {
         engine->setNudgeSensitivity(FaderEngine::NudgeSensitivity::High);
         ::TrayIconMac::updateSensitivityMenu(FaderEngine::NudgeSensitivity::High);
-
-        // Persist setting in properties file
-        if (auto* app = dynamic_cast<FaderKeysApplication*>(juce::JUCEApplication::getInstance()))
-        {
-            auto& props = app->getAppProperties();
-            auto* userSettings = props.getUserSettings();
-            userSettings->setValue("nudgeSensitivity", (int) FaderEngine::NudgeSensitivity::High);
-            userSettings->saveIfNeeded();
-        }
     }
 }
 

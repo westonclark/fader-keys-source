@@ -106,6 +106,14 @@ public:
     {
         DBG("Starting shutdown");
 
+        // Save sensitivity settings before cleanup
+        if (faderEngine != nullptr)
+        {
+            auto* settings = appProperties->getUserSettings();
+            settings->setValue("nudgeSensitivity", (int)faderEngine->getNudgeSensitivity());
+            settings->saveIfNeeded();
+        }
+
         // Ensure proper cleanup order
         TrayIconMac::removeStatusBarIcon();
         DBG("TrayIcon removed");
