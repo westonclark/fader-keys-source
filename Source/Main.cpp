@@ -10,6 +10,8 @@
 #include "FaderEngine.h"
 #include "GlobalKeyListener.h"
 #include "TrayIconMac.h"
+#include "RegistrationManager.h"
+#include "RegistrationDialog.h"
 
 //==============================================================================
 // Simple registration component
@@ -65,7 +67,12 @@ private:
 class FaderKeysApplication : public juce::JUCEApplication
 {
 public:
-    FaderKeysApplication() = default;
+    FaderKeysApplication()
+    {
+        appProperties = std::make_unique<juce::ApplicationProperties>();
+        appProperties->setStorageParameters(getPropertyFileOptions());
+        registrationManager = std::make_unique<RegistrationManager>(*appProperties);
+    }
 
     //==============================================================================
     const juce::String getApplicationName() override      { return ProjectInfo::projectName; }
@@ -75,51 +82,23 @@ public:
     //==============================================================================
     void initialise(const juce::String&) override
     {
-        // Initialize properties
-        appProperties = std::make_unique<juce::ApplicationProperties>();
-        appProperties->setStorageParameters(getPropertyFileOptions());
-
-        // If not registered, show the registration dialog
-        if (!isRegistered())
+        if (!registrationManager->isRegistered())
         {
-            auto regComponent = std::make_unique<RegistrationComponent>(
-                [this](const juce::String& serialNumber)
+            RegistrationDialog::show(
+                [this](const juce::String& serial)
                 {
-                    // If registration is successful, do the rest of your init
-                    if (registerSerialNumber(serialNumber))
+                    if (registrationManager->registerSerialNumber(serial))
                     {
-                        finishStartup();
+                        showRegistrationSuccessMessage();
                         return true;
                     }
                     return false;
-                });
-
-            juce::DialogWindow::LaunchOptions options;
-            options.content.setOwned(regComponent.release());
-            options.dialogTitle                 = "Register Fader Keys";
-            options.dialogBackgroundColour      = juce::Colours::darkgrey;
-            options.escapeKeyTriggersCloseButton = false;
-            options.useNativeTitleBar            = true;
-            options.resizable                    = false;
-            options.componentToCentreAround      = nullptr;
-
-            // Launch asynchronously and get pointer to window
-            if (auto* window = options.launchAsync())
-            {
-                // Bring window to front (important for LSUIElement apps)
-                window->setAlwaysOnTop(true);
-                window->toFront(true);
-
-                // Add a callback for when window closes
-                window->setVisible(true);
-
-                // Store window pointer to prevent premature deletion
-                activeDialog = window;
-            }
-            return; // Return from initialise() - finishStartup() will be called after successful registration
+                },
+                [this]() { finishStartup(); }
+            );
+            return;
         }
 
-        // Already registered – finish initialization
         finishStartup();
     }
 
@@ -294,8 +273,24 @@ private:
         DBG("finishStartup() completed");
     }
 
+    void showRegistrationSuccessMessage()
+    {
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::InfoIcon,
+            "Registration Successful",
+            "Please relaunch Fader Keys to complete setup.",
+            "OK",
+            nullptr,
+            juce::ModalCallbackFunction::create([](int) {
+                juce::Timer::callAfterDelay(500, []() {
+                    juce::JUCEApplication::getInstance()->systemRequestedQuit();
+                });
+            }));
+    }
+
     std::unique_ptr<FaderEngine>                faderEngine;
     std::unique_ptr<juce::ApplicationProperties> appProperties;
+    std::unique_ptr<RegistrationManager> registrationManager;
     juce::DialogWindow* activeDialog = nullptr;
 };
 

@@ -223,24 +223,30 @@ namespace TrayIconMac
         }
     }
 
-    void updateCapsLockState (bool capsLockOn)
+    void updateCapsLockState(bool capsLockOn)
     {
         if (statusItem == nil || statusButton == nil)
             return;
 
-        if (capsLockOn)
-        {
-            // Color the whole background using system red color
-            [statusButton setContentTintColor:nil];  // Reset tint
-            statusButton.wantsLayer = YES;           // Enable layer backing
-            statusButton.layer.backgroundColor = [NSColor systemRedColor].CGColor;
-            statusButton.layer.cornerRadius = 4;     // Round the corners
+        @try {
+            if (capsLockOn)
+            {
+                [statusButton setContentTintColor:nil];
+                statusButton.wantsLayer = YES;
+                statusButton.layer.backgroundColor = [NSColor systemRedColor].CGColor;
+                statusButton.layer.cornerRadius = 4;
+            }
+            else
+            {
+                if (statusButton.layer)
+                {
+                    statusButton.layer.backgroundColor = nil;
+                    [statusButton setContentTintColor:nil];
+                }
+            }
         }
-        else
-        {
-            // Reset to normal state
-            statusButton.layer.backgroundColor = nil;
-            [statusButton setContentTintColor:nil];
+        @catch (NSException* exception) {
+            DBG("Exception in updateCapsLockState: " << exception.reason.UTF8String);
         }
     }
 }
