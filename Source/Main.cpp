@@ -111,8 +111,6 @@ public:
 
     void shutdown() override
     {
-        DBG("Starting shutdown");
-
         // Save sensitivity settings before cleanup
         if (faderEngine != nullptr)
         {
@@ -122,19 +120,19 @@ public:
         }
 
         // Ensure proper cleanup order
+        // Remove the tray icon
         TrayIconMac::removeStatusBarIcon();
-
+        // Stop the global key listener
         stopGlobalKeyListener();
-
+        // Reset the FaderEngine
         faderEngine.reset();
+
         // Clean up the dialog if it's still around
         if (activeDialog != nullptr)
         {
             activeDialog->exitModalState(0);
             activeDialog = nullptr;
         }
-
-        DBG("Shutdown completed");
     }
 
     void systemRequestedQuit() override
@@ -150,7 +148,7 @@ public:
     juce::ApplicationProperties& getAppProperties()
     {
         // Return reference to existing instance
-        jassert(appProperties != nullptr); // Catch programming errors
+        jassert(appProperties != nullptr);
         return *appProperties;
     }
 
@@ -158,7 +156,6 @@ public:
     {
         auto* settings = appProperties->getUserSettings();
         bool registered = settings->getBoolValue("isRegistered", false);
-        DBG("Registration status: " + juce::String(registered ? "Registered" : "Not registered"));
         return registered;
     }
 
@@ -199,9 +196,6 @@ private:
         options.folderName         = "FaderKeys";
         options.osxLibrarySubFolder = "Application Support";
 
-        // Debug print to show where the file is being stored
-        DBG("Settings file location: " + options.getDefaultFile().getFullPathName());
-
         return options;
     }
 
@@ -236,8 +230,6 @@ private:
                 // If 200, success; if 401 (or anything else), fail
                 if (statusCode == 200)
                 {
-                    // For example: check a message in JSON
-                    // or just trust the 200 response
                     return true;
                 }
             }
@@ -245,11 +237,8 @@ private:
         return false;
     }
 
-    // Put the rest of your normal startup code here
     void finishStartup()
     {
-        DBG("Starting finishStartup()");
-
         auto* settings = getAppProperties().getUserSettings();
         auto lastSensitivity = static_cast<FaderEngine::NudgeSensitivity>(
             settings->getIntValue("nudgeSensitivity",
@@ -258,27 +247,14 @@ private:
         // Create FaderEngine first
         faderEngine = std::make_unique<FaderEngine>();
         faderEngine->setNudgeSensitivity(lastSensitivity);
-        DBG("FaderEngine created");
 
         // Start key listener before creating tray icon
         startGlobalKeyListener(faderEngine.get());
-        DBG("GlobalKeyListener started");
 
-        // Remove the old tray icon and create new one with engine enabled
-        TrayIconMac::removeStatusBarIcon();
         TrayIconMac::createStatusBarIcon(faderEngine.get(), true);
         TrayIconMac::updateSensitivityMenu(lastSensitivity);
-        DBG("TrayIcon created");
 
-        // If we still have the registration dialog, close it
-        if (activeDialog != nullptr)
-        {
-            activeDialog->exitModalState(0);
-            activeDialog = nullptr;
-            DBG("Dialog closed");
-        }
 
-        DBG("finishStartup() completed");
     }
 
     void showRegistrationSuccessMessage()
