@@ -251,6 +251,9 @@ private:
         // Start key listener before creating tray icon
         startGlobalKeyListener(faderEngine.get());
 
+
+        // Remove the old tray icon and create new one with engine enabled
+        TrayIconMac::removeStatusBarIcon();
         TrayIconMac::createStatusBarIcon(faderEngine.get(), true);
         TrayIconMac::updateSensitivityMenu(lastSensitivity);
 
