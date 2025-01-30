@@ -35,6 +35,7 @@
     if (observer) {
         [[NSWorkspace sharedWorkspace].notificationCenter removeObserver:observer];
     }
+    [super dealloc];
 }
 
 - (id)getObserver {

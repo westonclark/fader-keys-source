@@ -45,13 +45,14 @@ bool RegistrationManager::validateSerialNumber(const juce::String& serialNumber)
         juce::var jsonBody = juce::var(new juce::DynamicObject());
         jsonBody.getDynamicObject()->setProperty("serialNumber", serialNumber);
 
-        juce::URL::InputStreamOptions opts(juce::URL::ParameterHandling::inPostData);
-        opts.withExtraHeaders("Content-Type: application/json")
-            .withConnectionTimeoutMs(5000);
+        auto opts = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inPostData)
+                       .withExtraHeaders("Content-Type: application/json")
+                       .withConnectionTimeoutMs(5000);
 
         url = url.withPOSTData(juce::JSON::toString(jsonBody));
 
-        if (auto inputStream = url.createInputStream(opts))
+        auto inputStream = url.createInputStream(opts);
+        if (inputStream != nullptr)
         {
             if (auto* webStream = dynamic_cast<juce::WebInputStream*>(inputStream.get()))
                 return webStream->getStatusCode() == 200;

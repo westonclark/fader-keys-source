@@ -212,14 +212,16 @@ private:
 
         // Set up request headers
         juce::URL::InputStreamOptions opts(juce::URL::ParameterHandling::inPostData);
-        opts.withExtraHeaders("Content-Type: application/json")
-            .withConnectionTimeoutMs(5000);
+        auto newOpts = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inPostData)
+                          .withExtraHeaders("Content-Type: application/json")
+                          .withConnectionTimeoutMs(5000);
 
         // Attach the JSON payload as the POST data
         url = url.withPOSTData(jsonString);
 
-        // Perform the request
-        if (auto inputStream = url.createInputStream(opts))
+        // Store the return value of createInputStream
+        auto inputStream = url.createInputStream(newOpts);
+        if (inputStream != nullptr)
         {
             const juce::String response = inputStream->readEntireStreamAsString();
             auto parsed = juce::JSON::parse(response);
@@ -228,10 +230,7 @@ private:
             {
                 const int statusCode = webStream->getStatusCode();
                 // If 200, success; if 401 (or anything else), fail
-                if (statusCode == 200)
-                {
-                    return true;
-                }
+                return statusCode == 200;
             }
         }
         return false;
