@@ -14,7 +14,8 @@ bool RegistrationManager::isRegistered() const
 void RegistrationManager::registerSerialNumberAsync(const juce::String& serialNumber,
                                                     std::function<void(bool)> callback)
 {
-    std::thread([this, serialNumber, callback]()
+    // Create a shared pointer to store the thread
+    auto thread = std::make_shared<std::thread>([this, serialNumber, callback]()
     {
         const bool isValid = validateSerialNumber(serialNumber);
 
@@ -28,12 +29,15 @@ void RegistrationManager::registerSerialNumberAsync(const juce::String& serialNu
         }
 
         // Call the callback on the message thread
-        juce::MessageManager::callAsync([this, isValid, callback]()
+        juce::MessageManager::callAsync([callback, isValid]()
         {
             if (callback)
                 callback(isValid);
         });
-    }).detach();
+    });
+
+    // Detach the thread after creating it
+    thread->detach();
 }
 
 bool RegistrationManager::validateSerialNumber(const juce::String& serialNumber)
@@ -51,11 +55,16 @@ bool RegistrationManager::validateSerialNumber(const juce::String& serialNumber)
 
         url = url.withPOSTData(juce::JSON::toString(jsonBody));
 
+        // Create the input stream and wait for response
         auto inputStream = url.createInputStream(opts);
         if (inputStream != nullptr)
         {
             if (auto* webStream = dynamic_cast<juce::WebInputStream*>(inputStream.get()))
+            {
+                // Wait for the full response
+                auto response = inputStream->readEntireStreamAsString();
                 return webStream->getStatusCode() == 200;
+            }
         }
     }
     catch (const std::exception& e)

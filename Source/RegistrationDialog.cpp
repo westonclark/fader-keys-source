@@ -3,6 +3,10 @@
 RegistrationDialog::RegistrationDialog(std::function<void(const juce::String&, std::function<void(bool)>)> registrationFunc)
     : onRegister(registrationFunc)
 {
+    errorLabel.setColour(juce::Label::textColourId, juce::Colours::red);
+    errorLabel.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(errorLabel);
+
     serialNumberInput.setTextToShowWhenEmpty("Enter Serial Number", juce::Colours::grey);
     addAndMakeVisible(serialNumberInput);
 
@@ -14,12 +18,12 @@ RegistrationDialog::RegistrationDialog(std::function<void(const juce::String&, s
     quitButton.onClick = [this] { quit(); };
     addAndMakeVisible(quitButton);
 
-    setSize(300, 140); // Adjusted height without title
+    setSize(300, 160);
 }
 
 void RegistrationDialog::attemptRegistration()
 {
-    // Disable the button while checking
+    errorLabel.setText("", juce::dontSendNotification);
     registerButton.setEnabled(false);
 
     onRegister(serialNumberInput.getText(), [this](bool success)
@@ -28,16 +32,12 @@ void RegistrationDialog::attemptRegistration()
 
         if (success)
         {
-            // If registration is successful, close the window
             if (auto* dw = findParentComponentOfClass<juce::DialogWindow>())
-                dw->exitModalState(1);  // 1 indicates success
+                dw->exitModalState(1);
         }
         else
         {
-            juce::AlertWindow::showMessageBoxAsync(
-                juce::MessageBoxIconType::WarningIcon,
-                "Invalid Serial Number",
-                "Please enter a valid serial number.");
+            errorLabel.setText("Invalid serial number. Please try again.", juce::dontSendNotification);
         }
     });
 }
@@ -50,6 +50,9 @@ void RegistrationDialog::quit()
 void RegistrationDialog::resized()
 {
     auto bounds = getLocalBounds().reduced(20);
+
+    errorLabel.setBounds(bounds.removeFromTop(20));
+    bounds.removeFromTop(10);
 
     serialNumberInput.setBounds(bounds.removeFromTop(30));
     bounds.removeFromTop(15);
