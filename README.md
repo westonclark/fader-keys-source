@@ -27,7 +27,6 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 ## Installation & Setup
 
 ### 1. Install the Application
-- Download the latest `.pkg` file from our [GitHub Releases page](https://github.com/westonclark/fader-keys/releases)
 - Run the installer
 
 ### 2. Grant Accessibility Permissions
