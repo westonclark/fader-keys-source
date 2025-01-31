@@ -6,15 +6,23 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 
 - Control multiple faders at once using just the keys on your keyboard (Q-A, W-S, etc.)
 - Adjustable fader nudge sensitivity for precise control
-- Easily accessible On/Off toggle and bank selection keys for a seamless workflow
+- Easily accessible On/Off toggle and bank selection keys
 - Supports both HUI and MCU protocols for compatibility with Pro Tools, Logic, Ableton, and many other DAWs
+
+
 
 ## Controls
 
 ![keyboard-layout](https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d)
 
 > [!NOTE]
-> The menu bar icon will highlight red when Caps Lock is active, indicating that keyboard focus is being captured
+> Holding down the `shift` key while banking will bank in gorups of 8 instead of 1
+
+> [!NOTE]
+> Holding down the `shift` key while nuding fader levels will temporarily do a large nudge
+
+> [!NOTE]
+> The menu bar icon will highlight red when `Caps Lock` is active, indicating that keyboard focus is being captured
 
 ## Installation & Setup
 
