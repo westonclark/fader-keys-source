@@ -16,7 +16,7 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 ![keyboard-layout](https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d)
 
 > [!NOTE]
-> Holding down the `shift` key while banking will bank in gorups of 8 instead of 1
+> Holding down the `shift` key while banking will bank in groups of 8 instead of 1
 
 > [!NOTE]
 > Holding down the `shift` key while nuding fader levels will temporarily do a large nudge
@@ -49,13 +49,6 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 3. Assign Fader Keys ports for input and output
 
 <img src="https://github.com/user-attachments/assets/8f3c6e2e-6c1f-4249-8544-246c7885916b" alt="Peripherals Setup">
-
-### 4. Optional Settings
-
-#### Mix Window Behavior
-Adjust mix window banking behavior in `Pro Tools → Settings → Mixing`
-
-<img src="https://github.com/user-attachments/assets/63637c14-4e0f-42d4-86b0-e4f643e84683" alt="Mix Window Settings">
 
 #### Fader Sensitivity
 Configure fader sensitivity in the menu bar:
