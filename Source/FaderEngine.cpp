@@ -33,17 +33,36 @@ namespace
         {15, 3, true}, // R - Fader 4 Up
         {3, 3, false}, // F - Fader 4 Down
         // Fader 5 controls
-        {17, 4, true}, // T - Fader 5 Up
-        {5, 4, false}, // G - Fader 5 Down
+        {32, 4, true},  // U - Fader 5 Up
+        {38, 4, false}, // J - Fader 5 Down
         // Fader 6 controls
-        {16, 5, true}, // Y - Fader 6 Up
-        {4, 5, false}, // H - Fader 6 Down
+        {34, 5, true},  // I - Fader 6 Up
+        {40, 5, false}, // K - Fader 6 Down
         // Fader 7 controls
-        {32, 6, true},  // U - Fader 7 Up
-        {38, 6, false}, // J - Fader 7 Down
+        {31, 6, true},  // O - Fader 7 Up
+        {37, 6, false}, // L - Fader 7 Down
         // Fader 8 controls
-        {34, 7, true},  // I - Fader 8 Up
-        {40, 7, false}, // K - Fader 8 Down
+        {35, 7, true},  // P - Fader 8 Up
+        {41, 7, false}, // ; - Fader 8 Down
+    }};
+
+    struct SoloMuteMapping
+    {
+        int keyCode;
+        int faderIndex;
+    };
+
+    // Global keycode to solo/mute mapping
+    static const std::array<SoloMuteMapping, 8> SOLO_MUTE_MAP{{
+        // KeyCode, FaderIndex
+        {18, 0}, // 1 - Fader 1
+        {19, 1}, // 2 - Fader 2
+        {20, 2}, // 3 - Fader 3
+        {21, 3}, // 4 - Fader 4
+        {26, 4}, // 7 - Fader 5
+        {28, 5}, // 8 - Fader 6
+        {25, 6}, // 9 - Fader 7
+        {29, 7}, // 0 - Fader 8
     }};
 }
 
@@ -144,18 +163,22 @@ void FaderEngine::handleIncomingMidiMessage(juce::MidiInput *,
 
 // GLOBAL KEYCODE HANDLING
 //==============================================================================
-
 void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown, bool isShiftDown)
 {
     if (!isKeyDown)
         return;
 
+    // Handle bank switching
     if (handleBankSwitching(keyCode, isShiftDown))
         return;
 
+    // Handle solo/mute triggers
+    if (handleSoloMute(keyCode, isShiftDown))
+        return;
+
     // Get movement amounts based on current sensitivity or shift override
-    const auto &nudgeAmounts = isShiftDown ? NUDGE_VALUES[static_cast<int>(NudgeSensitivity::High)] : // Use High sensitivity if shift is pressed
-                                   NUDGE_VALUES[static_cast<int>(sensitivity)];                       // Otherwise use current sensitivity
+    const auto &nudgeAmounts = isShiftDown ? NUDGE_VALUES[static_cast<int>(NudgeSensitivity::High)] :
+                                   NUDGE_VALUES[static_cast<int>(sensitivity)];
 
     // Look for matching fader control
     for (const auto &mapping : KEY_FADER_MAP)
@@ -167,6 +190,20 @@ void FaderEngine::handleGlobalKeycode(int keyCode, bool isKeyDown, bool isShiftD
             return;
         }
     }
+}
+
+bool FaderEngine::handleSoloMute(int keyCode, bool isShiftDown)
+{
+    // Look for matching solo/mute control
+    for (const auto &mapping : SOLO_MUTE_MAP)
+    {
+        if (mapping.keyCode == keyCode)
+        {
+            triggerSoloMute(mapping.faderIndex, isShiftDown);
+            return true;
+        }
+    }
+    return false;
 }
 
 // FADER MOVEMENT
@@ -248,13 +285,13 @@ bool FaderEngine::handleBankSwitching(int keyCode, bool isShiftDown)
 {
     switch (keyCode)
     {
-    case 18: // '1' key
+    case 6: // 'Z' key
         if (isShiftDown)
             nudgeBankLeft8();
         else
             nudgeBankLeft();
         return true;
-    case 19: // '2' key
+    case 7: // 'X' key
         if (isShiftDown)
             nudgeBankRight8();
         else
@@ -335,6 +372,26 @@ void FaderEngine::nudgeBankRight8()
     uint8_t zoneSelect[3] = {0xB0, 0x0F, 0x0A};
     uint8_t buttonPress[3] = {0xB0, 0x2F, 0x43}; // Using port 3 for bank right 8
     uint8_t buttonRelease[3] = {0xB0, 0x2F, 0x03};
+
+    midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));
+    midiOutput->sendMessageNow(juce::MidiMessage(buttonRelease, 3));
+}
+
+void FaderEngine::triggerSoloMute(int faderIndex, bool isMute)
+{
+    if (midiOutput == nullptr || faderIndex < 0 || faderIndex >= numFaders)
+        return;
+
+    // Select the zone for the specific fader (0-7)
+    uint8_t zoneSelect[3] = {0xB0, 0x0F, static_cast<uint8_t>(faderIndex)};
+
+    // Use port 2 for mute, port 3 for solo
+    uint8_t port = isMute ? 0x42 : 0x43;  // Port 2 (mute) or 3 (solo)
+    uint8_t portRelease = isMute ? 0x02 : 0x03;
+
+    uint8_t buttonPress[3] = {0xB0, 0x2F, port};
+    uint8_t buttonRelease[3] = {0xB0, 0x2F, portRelease};
 
     midiOutput->sendMessageNow(juce::MidiMessage(zoneSelect, 3));
     midiOutput->sendMessageNow(juce::MidiMessage(buttonPress, 3));

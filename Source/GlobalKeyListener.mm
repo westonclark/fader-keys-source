@@ -114,9 +114,13 @@ namespace
     // validKeyCodes to block
     const std::unordered_set<unsigned short> validKeyCodes =
     {
-        0, 1, 2, 3, 5, 4, 38, 40, // a-k
-        12, 13, 14, 15, 17, 16, 32, 34, // q-i
-        18, 19  // 1-2
+        0, 1, 2, 3,             // a-f
+        12, 13, 14, 15,         // q-r
+        32, 34, 31, 35,         // u,i,o,p
+        38, 40, 37, 41,         // j,k,l,;
+        6, 7,                   // z-x (bank switching)
+        18, 19, 20, 21,         // 1-4 (solo/mute 1-4)
+        26, 28, 25, 29          // 7,8,9,0 (solo/mute 5-8)
     };
 
     CGEventRef eventTapCallback(CGEventTapProxy proxy,

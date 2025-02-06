@@ -61,5 +61,9 @@ private:
 
     NudgeSensitivity sensitivity = NudgeSensitivity::Medium;
 
+    // Add solo trigger method
+    bool handleSoloMute(int keyCode, bool isShiftDown);
+    void triggerSoloMute(int faderIndex, bool isMute);
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderEngine)
 };
