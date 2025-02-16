@@ -50,33 +50,37 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 
 #### Enable MIDI Input
 
-1. Navigate to `Setup → MIDI → MIDI Input Devices`
-2. Enable Fader Keys in the device list
+- Navigate to `Setup → MIDI → MIDI Input Devices`
+- Enable Fader Keys in the device list
 
 #### Configure HUI Controller
 
-1. In the menu bar, go to `Setup → Peripherals`
-2. Navigate to the `MIDI Controllers` tab
-3. Add a HUI controller
-4. Assign Fader Keys ports the the `Receive From` and `Send To` ports
+- In the menu bar, go to `Setup → Peripherals`
+- Navigate to the `MIDI Controllers` tab
+- Add a HUI controller
+- Assign Fader Keys ports the the `Receive From` and `Send To` ports
 
 ## Logic Pro Setup
 
-1. In the menu bar, navigate to `Logic Pro → Controll Surfaces → Setup`
-2. Click the `New` button and select `Install` to add a new MIDI device
-3. Search for `Mackie Control` device and select `Add`
+#### Add MIDI Device
 
-4. Assign the `Input and Output` ports to Fader Keys
+- In the menu bar, navigate to `Logic Pro → Controll Surfaces → Setup`
+- Click the `New` button and select `Install` to add a new MIDI device
+- Search for `Mackie Control` device and select `Add`
+- Assign the `Input and Output` ports to Fader Keys
 
 ## Ableton Live Setup
 
-1. In the menu bar, navigate to `Ableton Live → Preferences` and select the `Link MIDI` tab
-2. Under Control Surface select `Mackie Control`
-3. Select the `Fader Keys MIDI` as your Input and Output
-4. Under MIDI Ports, toggle the Track, Sync, and Remote buttons to "On"
+#### Add MIDI Device
+
+- In the menu bar, navigate to `Ableton Live → Preferences` and select the `Link MIDI` tab
+- Under Control Surface select `Mackie Control`
+- Select the `Fader Keys MIDI` as your Input and Output
 
 ## Studio One Setup
 
-1. In the menu bar, navigate to `Studio One → Preferences` and select the `External Devices`
-2. Select the `Mackie/Control` device
-3. Select the `Fader Keys MIDI` as your `Send To` and `Receive From` ports
+#### Add MIDI Device
+
+- In the menu bar, navigate to `Studio One → Preferences` and select the `External Devices`
+- Select the `Mackie/Control` device
+- Select the `Fader Keys MIDI` as your `Send To` and `Receive From` ports
