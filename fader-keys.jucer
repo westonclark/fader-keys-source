@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="kk5uiM" name="fader-keys" projectType="guiapp" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="0.1.0"
+<JUCERPROJECT id="kk5uiM" name="Fader Keys" projectType="guiapp" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="0.3.0"
               bundleIdentifier="com.westonclarkmixing.faderkeys">
-  <MAINGROUP id="fJv4GV" name="fader-keys">
+  <MAINGROUP id="fJv4GV" name="Fader Keys">
     <GROUP id="{A8175E5F-EC5F-17EA-514C-E4F0319AFBC8}" name="Source">
       <FILE id="qkiwvd" name="RegistrationDialog.cpp" compile="1" resource="0"
             file="Source/RegistrationDialog.cpp"/>
@@ -49,9 +49,9 @@
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.automation.apple-events,com.apple.security.temporary-exception.apple-events">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="fader-keys" macOSDeploymentTarget="10.14"
-                       osxCompatibility="10.14 SDK"/>
+                       osxCompatibility="10.14 SDK" osxArchitecture="Standard 64-bit"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="Fader Keys" macOSDeploymentTarget="10.14"
-                       osxCompatibility="10.14 SDK"/>
+                       osxCompatibility="10.14 SDK" osxArchitecture="Standard 64-bit"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../JUCE/modules"/>
