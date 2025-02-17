@@ -10,9 +10,8 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 
 ## Controls
 
-<p align="center">
-  <img width="800" alt="keyboard-layout" src="https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d">
-</p>
+<img width="800" alt="keyboard-layout" src="https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d">
+
 
 > [!NOTE]
 > Holding down the `shift` key while banking will bank in groups of 8 instead of 1
@@ -22,7 +21,9 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 
 > [!NOTE]
 > The menu bar icon will highlight red when `Caps Lock` is active, indicating that keyboard focus is being captured
-  <img width='460' alt="Sensitivity Settings" src="https://github.com/user-attachments/assets/e9879612-2c1b-44d5-8a44-102d6e06c681" />
+
+<img width='460' alt="Sensitivity Settings" src="https://github.com/user-attachments/assets/e9879612-2c1b-44d5-8a44-102d6e06c681" />
+
 
 ## Installation & Setup
 
@@ -40,7 +41,8 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 
 - On first launch after authorization, Fader Keys will ask for keyboard input access via System Preferences
 
-  <img width="600" alt="Accessibility Permissions" src="https://github.com/user-attachments/assets/15fc156d-0092-4b31-8757-6151aae2061c" />
+<img width="600" alt="Accessibility Permissions" src="https://github.com/user-attachments/assets/15fc156d-0092-4b31-8757-6151aae2061c" />
+
 ## Pro Tools Setup
 
 #### Enable MIDI Input
