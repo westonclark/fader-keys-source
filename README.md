@@ -10,8 +10,9 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 
 ## Controls
 
-<img width="800" alt="keyboard-layout" src="https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d">
-
+<p align="center">
+<img width="600" alt="keyboard-layout" src="https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d">
+</p>
 
 > [!NOTE]
 > Holding down the `shift` key while banking will bank in groups of 8 instead of 1
@@ -20,10 +21,11 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 > Holding down the `shift` key while nuding fader levels will temporarily do a large nudge
 
 > [!NOTE]
-> The menu bar icon will highlight red when `Caps Lock` is active, indicating that keyboard focus is being captured
+> The menu bar icon will highlight red when Fader Keys is active, indicating that keyboard focus is being captured
 
+<p align="center">
 <img width='460' alt="Sensitivity Settings" src="https://github.com/user-attachments/assets/e9879612-2c1b-44d5-8a44-102d6e06c681" />
-
+</p>
 
 ## Installation & Setup
 
@@ -34,14 +36,14 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 - When asked, input your serial number (found in the confirmation email or at www.faderkeys.com under `My Products`)
 - Once authorized, the application will quit and ask you to relaunch
 
+<p align="center">
 <img width="400" alt="Serial Number Registration" src="https://github.com/user-attachments/assets/6902d5c2-db27-4510-ac9b-e34c60380fc8" />
-
+</p>
 
 ### 2. Grant Accessibility Permissions
 
 - On first launch after authorization, Fader Keys will ask for keyboard input access via System Preferences
-
-<img width="600" alt="Accessibility Permissions" src="https://github.com/user-attachments/assets/15fc156d-0092-4b31-8757-6151aae2061c" />
+- If the popup does show up you can give Fader Keys access under `System Settings -> Privacy & Security -> Accessibility`
 
 ## Pro Tools Setup
 
@@ -59,8 +61,6 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 
 ## Logic Pro Setup
 
-#### Add MIDI Device
-
 - In the menu bar, navigate to `Logic Pro → Controll Surfaces → Setup`
 - Click the `New` button and select `Install` to add a new MIDI device
 - Search for `Mackie Control` device and select `Add`
@@ -68,15 +68,11 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 
 ## Ableton Live Setup
 
-#### Add MIDI Device
-
 - In the menu bar, navigate to `Ableton Live → Preferences` and select the `Link MIDI` tab
 - Under Control Surface select `Mackie Control`
 - Select the `Fader Keys MIDI` as your Input and Output
 
 ## Studio One Setup
-
-#### Add MIDI Device
 
 - In the menu bar, navigate to `Studio One → Preferences` and select the `External Devices`
 - Select the `Mackie/Control` device
