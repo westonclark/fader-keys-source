@@ -37,7 +37,7 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 - Once authorized, the application will quit and ask you to relaunch
 
 <p align="center">
-<img width="400" alt="Serial Number Registration" src="https://github.com/user-attachments/assets/6902d5c2-db27-4510-ac9b-e34c60380fc8" />
+<img width="500" alt="Serial Number Registration" src="https://github.com/user-attachments/assets/6902d5c2-db27-4510-ac9b-e34c60380fc8" />
 </p>
 
 ### 2. Grant Accessibility Permissions
