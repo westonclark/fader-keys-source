@@ -11,7 +11,7 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 ## Controls
 
 <p align="center">
-  <img alt="keyboard-layout" src="https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d">
+  <img width="800" alt="keyboard-layout" src="https://github.com/user-attachments/assets/02287bdf-8e30-40b4-9442-8fb681ef0b3d">
 </p>
 
 > [!NOTE]
@@ -21,11 +21,8 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 > Holding down the `shift` key while nuding fader levels will temporarily do a large nudge
 
 > [!NOTE]
-> The menu bar icon will highlight red when `Caps Lock` is active, indicating that keyboard focus is being captured, this muenu is also how you access the settings and quit the application
-
-<p align="center">
-  <img width="400" alt="Sensitivity Settings" src="https://github.com/user-attachments/assets/e9879612-2c1b-44d5-8a44-102d6e06c681" />
-</p>
+> The menu bar icon will highlight red when `Caps Lock` is active, indicating that keyboard focus is being captured
+  <img width='460' alt="Sensitivity Settings" src="https://github.com/user-attachments/assets/e9879612-2c1b-44d5-8a44-102d6e06c681" />
 
 ## Installation & Setup
 
@@ -36,16 +33,14 @@ Transform your computer keyboard into a powerful DAW controller, letting you con
 - When asked, input your serial number (found in the confirmation email or at www.faderkeys.com under `My Products`)
 - Once authorized, the application will quit and ask you to relaunch
 
---- AUTH IMAGE ---
+<img width="400" alt="Serial Number Registration" src="https://github.com/user-attachments/assets/6902d5c2-db27-4510-ac9b-e34c60380fc8" />
+
 
 ### 2. Grant Accessibility Permissions
 
 - On first launch after authorization, Fader Keys will ask for keyboard input access via System Preferences
 
-<p align="center">
-  <img width="400" alt="Accessibility Permissions" src="https://github.com/user-attachments/assets/15fc156d-0092-4b31-8757-6151aae2061c" />
-</p>
-
+  <img width="600" alt="Accessibility Permissions" src="https://github.com/user-attachments/assets/15fc156d-0092-4b31-8757-6151aae2061c" />
 ## Pro Tools Setup
 
 #### Enable MIDI Input
